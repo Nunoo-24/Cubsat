@@ -1,0 +1,16 @@
+﻿# Python virtual environment and generated Python files
+.venv/
+__pycache__/
+*.py[cod]
+
+# ESP-IDF generated build output and local configuration
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+
+# Editor and operating-system files
+.vscode/
+.vs/
+Thumbs.db
+.DS_Store

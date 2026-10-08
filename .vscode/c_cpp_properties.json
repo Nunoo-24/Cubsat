@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "ESP-IDF (ESP32-S3)",
+      "compilerPath": "",
+      "compileCommands": "${workspaceFolder}/firmware/build/compile_commands.json",
+      "intelliSenseMode": "gcc-x86",
+      "includePath": [
+        "${workspaceFolder}/firmware/**"
+      ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}/firmware"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ],
+  "version": 4
+}

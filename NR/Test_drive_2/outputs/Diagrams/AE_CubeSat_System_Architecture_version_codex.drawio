@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="Electron" agent="Codex">
+  <diagram id="ae-architecture" name="System Architecture">
+    <mxGraphModel dx="1808" dy="1631" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4600" pageHeight="2200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="env" parent="1" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#F0F7FF;swimlaneFillColor=#F0F7FF;strokeColor=#5B8DB8;strokeWidth=3;fontSize=25;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="ENVIRONMENT / TEST PLANT" vertex="1">
+          <mxGeometry height="1375" width="620" x="20" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="scene" parent="env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;SCENE / TARGET&lt;/b&gt;&lt;br&gt;Black point on a poster; target pose, scale, lighting and occlusion.&lt;br&gt;Physical gimbal or simulator controls set target XYZ and disturbances." vertex="1">
+          <mxGeometry height="200" width="570" x="25" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="plant" parent="env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;PLANT DYNAMICS&lt;/b&gt;&lt;br&gt;Python Sim_Environment: yaw reaction wheel with simplified pendular pitch/roll dynamics.&lt;br&gt;Applies disturbance torque and updates body attitude." vertex="1">
+          <mxGeometry height="220" width="570" x="25" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="render" parent="env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;SYNTHETIC SENSORS + CAMERA&lt;/b&gt;&lt;br&gt;QVGA grayscale image (320 × 240); synthetic gyro, accelerometer and fixed-field magnetometer.&lt;br&gt;Models visibility, sample freshness and occlusion; parameters are provisional." vertex="1">
+          <mxGeometry height="235" width="570" x="25" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="simbridge" parent="env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F2FC;strokeColor=#5B8DB8;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;dashed=1;dashPattern=8 5;" value="&lt;b&gt;SIMULATOR BRIDGE&lt;/b&gt;&lt;br&gt;Versioned local HTTP/JSON; sequence-paired RLE1 camera frames for the host SIL / Wokwi profile.&lt;br&gt;The Ground Station can control simulated scenes. This is not the physical radio protocol." vertex="1">
+          <mxGeometry height="250" width="570" x="25" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="simonly" parent="env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F2FC;strokeColor=#5B8DB8;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;dashed=1;dashPattern=8 5;" value="&lt;b&gt;HOST SIL VIRTUAL AXES&lt;/b&gt;&lt;br&gt;Simulation-only pitch/roll virtual torques close the host SIL loop against the plant.&lt;br&gt;These are not physical actuators." vertex="1">
+          <mxGeometry height="225" width="570" x="25" y="1110" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e3" connectable="0" parent="env" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=0;" value="Synthetic image + XYZ samples" vertex="1">
+          <mxGeometry height="25" width="270" x="325" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="sat" parent="1" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#EFFAF4;swimlaneFillColor=#EFFAF4;strokeColor=#4A9B73;strokeWidth=3;fontSize=25;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="CUBESAT — ONBOARD DOMAIN" vertex="1">
+          <mxGeometry height="1780" width="2063.5" x="1096.5" y="106.4" as="geometry" />
+        </mxCell>
+        <mxCell id="camera_domain" parent="sat" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#F3FBF6;swimlaneFillColor=#F3FBF6;strokeColor=#4A9B73;strokeWidth=3;fontSize=21;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="CAMERA SYSTEM · XIAO ESP32-S3 SENSE" vertex="1">
+          <mxGeometry height="290" width="1790" x="25" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="cam_hw" parent="camera_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;OPTICAL INPUT&lt;/b&gt;&lt;br&gt;OV5640 camera&lt;br&gt;Kit revision to be confirmed&lt;br&gt;Autofocus + QVGA grayscale" vertex="1">
+          <mxGeometry height="200" width="510" x="25" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cam_img" parent="camera_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;IMAGE PIPELINE&lt;/b&gt;&lt;br&gt;Dark-pixel threshold&lt;br&gt;Binary mask → 8-neighbour coherence filter&lt;br&gt;Calculate target centroid" vertex="1">
+          <mxGeometry height="200" width="510" x="640" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cam_err" parent="camera_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;POINTING OBSERVATION&lt;/b&gt;&lt;br&gt;Centroid offset from optical centre → image X/Y error&lt;br&gt;An asymmetric marker may provide a roll cue; a single point cannot.&lt;br&gt;Pixel-to-angle conversion requires calibration." vertex="1">
+          <mxGeometry height="200" width="510" x="1255" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e7a" connectable="0" parent="camera_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="QVGA grayscale image" vertex="1">
+          <mxGeometry height="42" width="164" x="358.5" y="108.6" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e7b" connectable="0" parent="camera_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Binary target mask + centroid" vertex="1">
+          <mxGeometry height="42" width="264" x="878.5" y="96.6" as="geometry" />
+        </mxCell>
+        <mxCell id="sensor_domain" parent="sat" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#F3FBF6;swimlaneFillColor=#F3FBF6;strokeColor=#4A9B73;strokeWidth=3;fontSize=21;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="SENSOR SYSTEM · SHARED I²C INPUTS" vertex="1">
+          <mxGeometry height="225" width="1790" x="25" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="sensor_hw" parent="sensor_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;IMU + MAGNETOMETER&lt;/b&gt;&lt;br&gt;MPU-6050: 3-axis gyroscope + accelerometer&lt;br&gt;LIS3MDL: XYZ magnetic field; ±4/8/12/16 G ranges&lt;br&gt;Check breakout voltage and logic levels before wiring." vertex="1">
+          <mxGeometry height="145" width="800" x="25" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="sensor_proc" parent="sensor_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;SAMPLE CONDITIONING&lt;/b&gt;&lt;br&gt;I²C acquisition, startup bias, scale, timestamps and sample freshness&lt;br&gt;Mounting/axis mapping and magnetic calibration remain open.&lt;br&gt;Physical magnetic correction is disabled pending verification." vertex="1">
+          <mxGeometry height="145" width="800" x="965" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e8a" connectable="0" parent="sensor_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Raw XYZ samples" vertex="1">
+          <mxGeometry height="42" width="174" x="638.5" y="83.60000000000002" as="geometry" />
+        </mxCell>
+        <mxCell id="processing_domain" parent="sat" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#EDF8F1;swimlaneFillColor=#EDF8F1;strokeColor=#4A9B73;strokeWidth=3;fontSize=21;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="ONBOARD PROCESSING · SEEED XIAO ESP32-S3 SENSE · NOMINAL 50 Hz" vertex="1">
+          <mxGeometry height="390" width="1790" x="25" y="693.6" as="geometry" />
+        </mxCell>
+        <mxCell id="guidance" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;POINTING / GUIDANCE&lt;/b&gt;&lt;br&gt;Camera image X/Y error + body-Y gyro rate&lt;br&gt;On target loss → IMU rate damping&lt;br&gt;Simulation marker may provide a roll cue." vertex="1">
+          <mxGeometry height="260" width="510" x="640" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="control" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;CONTROL + SAFETY&lt;/b&gt;&lt;br&gt;Bounded motor/control commands&lt;br&gt;Input-age and validity checks&lt;br&gt;Operating modes, watchdog and fault handling&lt;br&gt;Gains and plant constants are not calibrated." vertex="1">
+          <mxGeometry height="260" width="510" x="55" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="estimate" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;ATTITUDE ESTIMATE&lt;/b&gt;&lt;br&gt;Yaw-only gyro integration&lt;br&gt;SIL may use a known synthetic magnetic reference.&lt;br&gt;Physical yaw remains relative until calibrated." vertex="1">
+          <mxGeometry height="260" width="510" x="1198.5" y="63.60000000000002" as="geometry" />
+        </mxCell>
+        <mxCell id="e10a" edge="1" parent="processing_domain" source="estimate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="guidance" value="">
+          <mxGeometry relative="1" x="0.3809" as="geometry">
+            <Array as="points">
+              <mxPoint x="1168.5" y="100" />
+              <mxPoint x="1168.5" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="textbox_e10b" connectable="0" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Bounded pointing request" vertex="1">
+          <mxGeometry height="42" width="184" x="378.5" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e10a" connectable="0" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Yaw estimate + body-Y rate" vertex="1">
+          <mxGeometry height="42" width="240.25" x="895" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e9" connectable="0" parent="processing_domain" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Image X/Y error + preview" vertex="1">
+          <mxGeometry height="42" width="229.5" x="658.5" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actuation_domain" parent="sat" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#FFF9ED;swimlaneFillColor=#FFF9ED;strokeColor=#C58B36;strokeWidth=3;fontSize=21;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="ACTUATION SYSTEM · PHYSICAL PATH (YAW ONLY)" vertex="1">
+          <mxGeometry height="460" width="840" x="25" y="1223.6" as="geometry" />
+        </mxCell>
+        <mxCell id="wheel" parent="actuation_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDF7;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;dashed=1;dashPattern=8 5;" value="&lt;b&gt;DRIVE + REACTION WHEEL&lt;/b&gt;&lt;br&gt;moteus r4.11&lt;br&gt;5208 Kv330 BLDC motor + wheel&lt;br&gt;Wheel momentum change produces opposite body torque." vertex="1">
+          <mxGeometry height="365" width="365" x="35" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="motor_if" parent="actuation_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDF7;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;dashed=1;dashPattern=8 5;" value="&lt;b&gt;MOTOR INTERFACE&lt;/b&gt;&lt;br&gt;Candidate: TTL UART on moteus AUX2&lt;br&gt;ESP32-S3 TWAI supports Classical CAN, not CAN-FD.&lt;br&gt;Wiring, drive configuration, watchdog and safe stop are unverified." vertex="1">
+          <mxGeometry height="365" width="365" x="425" y="63" as="geometry" />
+        </mxCell>
+        <mxCell id="telemetry_domain" parent="sat" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#F7F3FA;swimlaneFillColor=#F7F3FA;strokeColor=#8A65A3;strokeWidth=3;fontSize=21;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="TELEMETRY / TELECOMMAND · ONBOARD" vertex="1">
+          <mxGeometry height="460" width="900" x="965" y="1223.6" as="geometry" />
+        </mxCell>
+        <mxCell id="tm_pack" parent="telemetry_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;HOUSEKEEPING + PACKING&lt;/b&gt;&lt;br&gt;Camera error/preview metadata, sensor XYZ, estimate,&lt;br&gt;mode/fault, control and actuator status, timestamps/sample age&lt;br&gt;Camera frame and metadata remain sequence-paired." vertex="1">
+          <mxGeometry height="235" width="390" x="15" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="tm_link" parent="telemetry_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDF7;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;dashed=1;dashPattern=8 5;" value="&lt;b&gt;WI-FI / LINK LAYER&lt;/b&gt;&lt;br&gt;Simulation: local HTTP/JSON + RLE1 frame&lt;br&gt;Physical Wi-Fi/radio, TM/TC framing, security and replay&lt;br&gt;behaviour have not been selected." vertex="1">
+          <mxGeometry height="235" width="400" x="485" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="sim_order" parent="telemetry_domain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8795;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;SUPERVISORY COMMAND INTAKE&lt;/b&gt;&lt;br&gt;Ground commands are bounded and supervisory.&lt;br&gt;The control loop remains onboard; the PC does not close the pointing loop." vertex="1">
+          <mxGeometry height="125" width="870" x="15" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="sat" source="control" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#BD8130;fontSize=19;labelBackgroundColor=#FFFFFF;" target="motor_if" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="503.5" y="1093.6" />
+              <mxPoint x="503.5" y="1093.6" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WnFvndUQA5b1-OLW1kbG-2" edge="1" parent="sat" source="cam_err" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="motor_if" value="">
+          <mxGeometry relative="1" x="0.2274" as="geometry">
+            <Array as="points">
+              <mxPoint x="1983.5" y="198" />
+              <mxPoint x="1983.5" y="1743.6" />
+              <mxPoint x="627.5" y="1743.6" />
+            </Array>
+            <mxPoint x="1720" y="325" as="sourcePoint" />
+            <mxPoint x="940" y="1170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="sat" source="motor_if" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="tm_pack" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="903.5" y="1423.6" />
+              <mxPoint x="903.5" y="1423.6" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="textbox_e16" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Sensor XYZ + sample freshness" vertex="1">
+          <mxGeometry height="42" width="244" x="1363.5" y="1113.6" as="geometry" />
+        </mxCell>
+        <mxCell id="e8b" edge="1" parent="sat" source="sensor_proc" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="estimate" value="">
+          <mxGeometry relative="1" x="-0.3534" as="geometry">
+            <Array as="points">
+              <mxPoint x="1723.5" y="553.6" />
+              <mxPoint x="1723.5" y="899.4" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WnFvndUQA5b1-OLW1kbG-1" edge="1" parent="sat" source="cam_err" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="estimate" value="">
+          <mxGeometry relative="1" x="-0.0546" as="geometry">
+            <Array as="points">
+              <mxPoint x="1913.5" y="263.6" />
+              <mxPoint x="1913.5" y="840.6" />
+            </Array>
+            <mxPoint x="1653.5" y="213.6" as="sourcePoint" />
+            <mxPoint x="1038.5" y="840.6" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="textbox_e8b" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Fresh XYZ rates / gravity / field" vertex="1">
+          <mxGeometry height="42" width="354" x="1203.5" y="638.6" as="geometry" />
+        </mxCell>
+        <mxCell id="zVoez3tHJncT0aHHRl3y-1" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Estimate, mode, fault + commands" vertex="1">
+          <mxGeometry height="42" width="294" x="583.5" y="1093.6" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e11" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Bounded yaw torque / speed command" vertex="1">
+          <mxGeometry height="60" width="184" x="313.5" y="1053.6" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e15" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=90;" value="Target error + preview metadata" vertex="1">
+          <mxGeometry height="42" width="334" x="1817.5" y="1035.6" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e18" connectable="0" parent="sat" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Actuator housekeeping" vertex="1">
+          <mxGeometry height="42" width="234" x="313.5" y="1722.6" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="control" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="tm_pack" value="">
+          <mxGeometry relative="1" x="0.0672" as="geometry">
+            <Array as="points">
+              <mxPoint x="1650" y="1240" />
+              <mxPoint x="2010" y="1240" />
+              <mxPoint x="2010" y="1480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gs" parent="1" style="swimlane;html=1;startSize=44;rounded=1;horizontal=1;fillColor=#FFF8EC;swimlaneFillColor=#FFF8EC;strokeColor=#C58B36;strokeWidth=3;fontSize=25;fontStyle=1;align=left;spacingLeft=14;whiteSpace=wrap;" value="GROUND STATION — LOCAL PC" vertex="1">
+          <mxGeometry height="1375" width="820" x="3510" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="wifi" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;RECEIVE / LINK ENDPOINT&lt;/b&gt;&lt;br&gt;Simulation: local HTTP/JSON bridge&lt;br&gt;Physical link / TM-TC protocol: TBD&lt;br&gt;Telemetry up; bounded commands return." vertex="1">
+          <mxGeometry height="205" width="780" x="20" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="decode" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;DECODE + VALIDATE&lt;/b&gt;&lt;br&gt;Decode telemetry and pair each preview with its metadata.&lt;br&gt;Display sample age/link state; reject stale or invalid samples." vertex="1">
+          <mxGeometry height="200" width="780" x="20" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="ui" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;OPERATOR UI&lt;/b&gt;&lt;br&gt;Pointing error/direction time history&lt;br&gt;Camera preview with centroid/error overlay&lt;br&gt;Housekeeping, mode, yaw estimate, sample age and faults&lt;br&gt;Show simulator truth separately from spacecraft telemetry." vertex="1">
+          <mxGeometry height="270" width="780" x="20" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="logcmd" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;LOGGING + SUPERVISORY COMMANDS&lt;/b&gt;&lt;br&gt;CSV telemetry logs&lt;br&gt;PING, enumerated modes, relative yaw step, timed wheel-speed commissioning&lt;br&gt;Acknowledgements/status return through telemetry&lt;br&gt;No PC-side pointing control." vertex="1">
+          <mxGeometry height="310" width="780" x="20" y="845" as="geometry" />
+        </mxCell>
+        <mxCell id="limits" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C58B36;strokeWidth=2;fontSize=20;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;EVIDENCE / LIMITS&lt;/b&gt;&lt;br&gt;Host SIL verified. Firmware build, Wokwi, live network and hardware remain unverified." vertex="1">
+          <mxGeometry height="150" width="780" x="20" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e22" connectable="0" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=0;" value="Decoded data + paired preview" vertex="1">
+          <mxGeometry height="23" width="294" x="263" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e23" connectable="0" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=0;" value="Operator view / test selection" vertex="1">
+          <mxGeometry height="23" width="310" x="255" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e21" connectable="0" parent="gs" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=0;" value="TM/TC packets (physical framing TBD)" vertex="1">
+          <mxGeometry height="23" width="340" x="240" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="scene" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="plant" value="">
+          <mxGeometry relative="1" x="0.0444" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="260" />
+              <mxPoint x="680" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="plant" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="render" value="">
+          <mxGeometry relative="1" x="-0.25" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="580" />
+              <mxPoint x="680" y="810" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="render" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="simbridge" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="simbridge" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="cam_hw" value="">
+          <mxGeometry relative="1" x="0.0769" as="geometry">
+            <Array as="points">
+              <mxPoint x="820" y="1060" />
+              <mxPoint x="820" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="scene" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="cam_hw" value="">
+          <mxGeometry relative="1" x="0.0008" as="geometry">
+            <Array as="points">
+              <mxPoint x="1050" y="220" />
+              <mxPoint x="1050" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="render" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="sensor_hw" value="">
+          <mxGeometry relative="1" x="0.0857" as="geometry">
+            <Array as="points">
+              <mxPoint x="870" y="840" />
+              <mxPoint x="870" y="630" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7a" edge="1" parent="1" source="cam_hw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="cam_img" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7b" edge="1" parent="1" source="cam_img" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="cam_err" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8a" edge="1" parent="1" source="sensor_hw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="sensor_proc" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10b" edge="1" parent="1" source="guidance" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#2F8C61;fontSize=19;labelBackgroundColor=#FFFFFF;" target="control" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="control" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#25815A;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="simonly" value="">
+          <mxGeometry relative="1" x="-0.0201" as="geometry">
+            <Array as="points">
+              <mxPoint x="1040" y="980" />
+              <mxPoint x="1040" y="1390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="simonly" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#25815A;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="plant" value="">
+          <mxGeometry relative="1" x="0.0252" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="1290" />
+              <mxPoint x="750" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="wheel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#BD8130;fontSize=19;labelBackgroundColor=#FFFFFF;" target="plant" value="">
+          <mxGeometry relative="1" x="-0.3225" as="geometry">
+            <Array as="points">
+              <mxPoint x="990" y="1560" />
+              <mxPoint x="990" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="sensor_proc" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="tm_pack" value="">
+          <mxGeometry relative="1" x="-0.0801" as="geometry">
+            <Array as="points">
+              <mxPoint x="2850" y="1270" />
+              <mxPoint x="2030" y="1270" />
+              <mxPoint x="2030" y="1440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="wheel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#477A9D;fontSize=19;labelBackgroundColor=#FFFFFF;" target="tm_pack" value="">
+          <mxGeometry relative="1" x="0.2248" as="geometry">
+            <Array as="points">
+              <mxPoint x="1197.5" y="1820" />
+              <mxPoint x="2010" y="1820" />
+              <mxPoint x="2010" y="1580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="tm_pack" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#AD7528;fontSize=19;labelBackgroundColor=#FFFFFF;" target="tm_link" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="tm_link" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#AD7528;fontSize=19;labelBackgroundColor=#FFFFFF;" target="wifi" value="">
+          <mxGeometry relative="1" x="-0.2316" as="geometry">
+            <Array as="points">
+              <mxPoint x="3340" y="1476.9" />
+              <mxPoint x="3340" y="282.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="wifi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#AD7528;fontSize=19;labelBackgroundColor=#FFFFFF;" target="decode" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="decode" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#AD7528;fontSize=19;labelBackgroundColor=#FFFFFF;" target="ui" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="ui" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#AD7528;fontSize=19;labelBackgroundColor=#FFFFFF;" target="logcmd" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="logcmd" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#A24C8D;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="wifi" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4410" y="1115.0000000000005" />
+              <mxPoint x="4410" y="282.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="logcmd" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#A24C8D;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="sim_order" value="">
+          <mxGeometry relative="1" x="0.0657" as="geometry">
+            <Array as="points">
+              <mxPoint x="3450" y="1190" />
+              <mxPoint x="3450" y="1690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="sim_order" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#A24C8D;fontSize=19;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=8 6;" target="control" value="">
+          <mxGeometry relative="1" x="-0.4194" as="geometry">
+            <Array as="points">
+              <mxPoint x="1990" y="1697.5" />
+              <mxPoint x="1990" y="1270" />
+              <mxPoint x="1285" y="1270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFFFFF;strokeWidth=2;fontSize=24;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;AE CUBESAT ATTITUDE-CONTROL SYSTEM — FUNCTIONAL / HARDWARE ARCHITECTURE&lt;/b&gt;&lt;br&gt;Nested domains show subsystem ownership; arrows show exchanged data and commands." vertex="1">
+          <mxGeometry height="75" width="3980" x="20" y="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFFFFF;strokeWidth=2;fontSize=36;align=left;verticalAlign=middle;spacingTop=10;spacingLeft=12;spacingRight=10;" value="&lt;b&gt;LEGEND&lt;/b&gt;　Green solid: sensor/visual data　 Amber solid: physical actuator or link　 Green dashed: simulation-only　 Purple dashed: supervisory commands　 Dashed amber cards: hardware/interface verification pending" vertex="1">
+          <mxGeometry height="70" width="4330" x="80" y="2020" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e1" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=90;" value="Scene pose / target XYZ" vertex="1">
+          <mxGeometry height="30" width="210" x="572.5" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e2" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=90;" value="Attitude + target visibility" vertex="1">
+          <mxGeometry height="25" width="207" x="576.5" y="681" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e4" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=270;" value="Simulated frame + sequence (RLE1)" vertex="1">
+          <mxGeometry height="30" width="314" x="663" y="573.4" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e5" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Physical scene → optical image" vertex="1">
+          <mxGeometry height="25" width="270" x="700" y="206.4" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e13" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=270;" value="Simulated pitch/roll torque" vertex="1">
+          <mxGeometry height="38" width="314" x="592" y="914.4000000000001" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e19" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Packed telemetry" vertex="1">
+          <mxGeometry height="42" width="184" x="2265.5" y="1471.5" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e20" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=270;" value="Wi-Fi telemetry" vertex="1">
+          <mxGeometry height="42" width="174" x="3254" y="755.6" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e24" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=270;" value="Bounded command / acknowledgement" vertex="1">
+          <mxGeometry height="38" width="354" x="4233" y="679.8" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e25" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=90;" value="Bounded supervisory command" vertex="1">
+          <mxGeometry height="42" width="294" x="3304" y="1455.9999999999998" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e26" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Supervisory command → XIAO" vertex="1">
+          <mxGeometry height="42" width="284" x="1300" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e14" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;rotation=270;" value="Reaction torque / body motion" vertex="1">
+          <mxGeometry height="36" width="300" x="838" y="1045.8" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e6" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Synthetic gyro / accel / mag XYZ" vertex="1">
+          <mxGeometry height="66.4" width="191" x="892.5" y="600.7" as="geometry" />
+        </mxCell>
+        <mxCell id="textbox_e12" connectable="0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=#C6D2D9;strokeWidth=1;fontSize=19;fontColor=#263746;" value="Virtual pitch/roll torque&lt;br&gt;Simulation-only source" vertex="1">
+          <mxGeometry height="60" width="210" x="715" y="1359.4" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

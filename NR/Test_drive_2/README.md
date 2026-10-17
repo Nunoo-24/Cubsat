@@ -60,4 +60,4 @@ Git repository.
 
 ## System architecture diagram
 
-Open the editable [diagrams.net file](outputs/Diagrams/AE_CubeSat_System_Architecture.drawio) or its [SVG preview](outputs/Diagrams/AE_CubeSat_System_Architecture.svg). It shows the environment/test-plant, onboard CubeSat, and Ground Station domains with labeled interfaces and clearly separates the simulation-only axes from the physical yaw actuator path.
+Open the editable [diagrams.net file](outputs/Diagrams/AE_CubeSat_System_Architecture.drawio) or its [SVG preview](outputs/Diagrams/AE_CubeSat_System_Architecture.svg). It keeps those three top-level domains and divides the CubeSat into nested camera, sensor, processing, actuation, and telemetry domains. Processing uses smaller connected cards for estimation, guidance, and control/safety; the reaction-torque label is vertical for a cleaner route.

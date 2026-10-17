@@ -623,3 +623,59 @@ Both generated diagram files parse as XML. The Windows GUI itself could not be
 operated from this WSL session. Included the diagram and relevant documentation
 in the local `NR/Test_drive_2` snapshot; GitHub remains unchanged pending a
 successful `git push` after network name resolution is available.
+
+
+## 2026-10-17 — Refine system architecture layout
+
+Updated the editable diagram and SVG preview per the user's spacing and
+readability direction: retained the three main domain boundaries, nested five
+CubeSat subsystem domains, split processing into connected functional cards,
+increased type sizes, and rotated the vertical reaction-torque label. Synced
+the revised diagrams and descriptions into Test Drive 2. XML parsing and
+reference integrity checks passed; the Windows draw.io app was not directly
+controlled or used for visual rendering from WSL.
+
+## 2026-10-17 — Correct draw.io connector label rotation
+
+The user reported the reaction-torque text remained horizontal in the editable
+file although the SVG preview showed it vertically. Replaced the edge's inline
+label with a rotated child label vertex attached to the edge; synced the
+editable diagram into Test Drive 2. XML validation confirms the rotated label
+is attached to the intended edge. The SVG was already correct. Desktop-app
+rendering remains unverified from WSL.
+
+
+## 2026-10-17 — Make connector labels movable text boxes
+
+Converted all 29 connector labels to independent, editable text-box cells and
+cleared the labels from their connector edges. Kept the reaction-torque text
+box vertical and synced the revised `.drawio` source into Test Drive 2. XML
+checks confirm each label is an independent layer vertex and all edges retain
+their endpoints.
+
+
+## 2026-10-17 — Increase domain and subdomain spacing
+
+Expanded whitespace between CubeSat subsystem rows and card groups, tightened
+the Environment and Ground Station boundary heights around their content, and
+repositioned the independent connector labels. Regenerated and synchronized
+the SVG preview and Test Drive 2 source. XML/layout checks confirm 29 free
+text boxes and 29 edges with valid endpoints, all within the page.
+
+
+## 2026-10-17 — Readability pass on user-routed architecture diagram
+
+Repositioned 29 standalone connector labels against the latest paths and tuned
+the CubeSat boundary/page dimensions slightly for a clearer composition. Kept
+all 31 connector cells exactly unchanged (identifiers, endpoints, styles, and
+waypoints). Regenerated the SVG preview and copied both diagram files into the
+Test Drive 2 package.
+
+## 2026-10-17 — Create label-cleanup comparison copy
+
+Used the latest user-edited Test Drive 2 diagram (30 connectors, 28 free
+connector-label boxes) as the base. Refreshed the original SVG preview and
+created a separate `version_codex` draw.io/SVG pair with corrected wording and
+formatting across all 62 labeled cells. Verified every cell's geometry, style,
+parent, endpoints, and edge routes match the latest original; only label values
+changed in the comparison copy.

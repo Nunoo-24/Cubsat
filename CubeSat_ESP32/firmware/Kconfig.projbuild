@@ -1,0 +1,146 @@
+menu "CubeSat simulation bridge"
+
+config CUBESAT_WIFI_SSID
+    string "Wi-Fi SSID"
+    default "Wokwi-GUEST"
+
+config CUBESAT_WIFI_PASSWORD
+    string "Wi-Fi password"
+    default ""
+
+config CUBESAT_SIM_BRIDGE_URL
+    string "Simulation bridge base URL"
+    default "http://host.wokwi.internal:8000"
+
+config CUBESAT_CAMERA_ENABLED
+    bool "Capture grayscale frames from the XIAO ESP32-S3 Sense camera"
+    default n
+    help
+        Enable for the physical XIAO ESP32-S3 Sense camera. The Wokwi profile
+        leaves this disabled and consumes synthetic camera observations.
+
+config CUBESAT_CAMERA_THRESHOLD
+    int "Maximum grayscale value treated as a dark target"
+    range 0 255
+    default 80
+    depends on CUBESAT_CAMERA_ENABLED
+
+config CUBESAT_CAMERA_MIN_DARK_PIXELS
+    int "Minimum dark pixels in a valid target"
+    range 1 307200
+    default 50
+    depends on CUBESAT_CAMERA_ENABLED
+
+config CUBESAT_CAMERA_MAX_DARK_PIXELS
+    int "Maximum dark pixels in a valid target"
+    range 1 307200
+    default 200
+    depends on CUBESAT_CAMERA_ENABLED
+
+config CUBESAT_CAMERA_FOCAL_LENGTH_PX
+    int "Calibrated horizontal camera focal length in pixels"
+    range 1 2000
+    default 277
+    depends on CUBESAT_CAMERA_ENABLED
+
+config CUBESAT_MPU6050_ENABLED
+    bool "Read MPU-6050 IMU over I2C"
+    default n
+    help
+        Enable for a physical MPU-6050 breakout on the XIAO D4/D5 I2C pins.
+        The board must be stationary during startup gyro-bias calibration.
+
+config CUBESAT_MPU6050_ADDRESS
+    hex "MPU-6050 7-bit I2C address"
+    range 0x68 0x69
+    default 0x68
+    depends on CUBESAT_MPU6050_ENABLED
+
+config CUBESAT_LIS3MDL_ENABLED
+    bool "Read LIS3MDL three-axis magnetometer over shared I2C"
+    default n
+    help
+        Enable for a LIS3MDL breakout on the XIAO D4/D5 I2C bus. The driver
+        reports magnetic field values scaled to microtesla. It does not apply
+        hard/soft-iron calibration or fuse readings into attitude or yaw control.
+
+choice CUBESAT_LIS3MDL_ADDRESS
+    prompt "LIS3MDL I2C address"
+    default CUBESAT_LIS3MDL_ADDRESS_1C
+    depends on CUBESAT_LIS3MDL_ENABLED
+
+config CUBESAT_LIS3MDL_ADDRESS_1C
+    bool "0x1C (SA1 low)"
+
+config CUBESAT_LIS3MDL_ADDRESS_1E
+    bool "0x1E (SA1 high)"
+
+endchoice
+
+choice CUBESAT_LIS3MDL_FULL_SCALE
+    prompt "LIS3MDL magnetic measurement range"
+    default CUBESAT_LIS3MDL_FS_4G
+    depends on CUBESAT_LIS3MDL_ENABLED
+
+config CUBESAT_LIS3MDL_FS_4G
+    bool "±4 gauss"
+
+config CUBESAT_LIS3MDL_FS_8G
+    bool "±8 gauss"
+
+config CUBESAT_LIS3MDL_FS_12G
+    bool "±12 gauss"
+
+config CUBESAT_LIS3MDL_FS_16G
+    bool "±16 gauss"
+
+endchoice
+
+config CUBESAT_MOTEUS_ENABLED
+    bool "Enable the physical moteus reaction-wheel adapter"
+    default n
+    depends on CUBESAT_CAMERA_ENABLED && CUBESAT_MPU6050_ENABLED
+    help
+        Experimental physical actuator path. Requires real camera and IMU
+        adapters, verified UART wiring/logic levels, and an independent
+        emergency power cut. The external arm input must be held high before
+        the firmware will command the motor. Controller CAN prefix must be
+        zero; configure the actual controller ID below. Leave disabled in Wokwi/SIL.
+
+config CUBESAT_MOTEUS_CONTROLLER_ID
+    int "moteus controller ID"
+    range 1 127
+    default 1
+    depends on CUBESAT_MOTEUS_ENABLED
+
+config CUBESAT_MOTEUS_UART_TX_GPIO
+    int "UART TX GPIO connected to moteus AUX2 host RX"
+    range 0 48
+    default 1
+    depends on CUBESAT_MOTEUS_ENABLED
+
+config CUBESAT_MOTEUS_UART_RX_GPIO
+    int "UART RX GPIO connected to moteus AUX2 host TX"
+    range 0 48
+    default 2
+    depends on CUBESAT_MOTEUS_ENABLED
+
+config CUBESAT_MOTEUS_ARM_GPIO
+    int "External active-high actuator arm input GPIO"
+    range 0 48
+    default 3
+    depends on CUBESAT_MOTEUS_ENABLED
+    help
+        Use an external switch/jumper to 3V3 with a suitable common ground.
+        An internal pulldown keeps the actuator disarmed when disconnected.
+
+config CUBESAT_MOTEUS_MAX_TORQUE_MNM
+    int "Maximum motor torque command (mN m)"
+    range 1 20
+    default 1
+    depends on CUBESAT_MOTEUS_ENABLED
+    help
+        Software clamp only. Confirm this is within the motor, wheel and rig
+        limits before enabling physical actuation.
+
+endmenu

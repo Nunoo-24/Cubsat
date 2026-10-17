@@ -1817,3 +1817,74 @@ installed on Windows, but this WSL session cannot directly control it; open the
 editable file from the Windows app to review visual layout. The same diagram
 and updated documentation are included in the local Test Drive 2 snapshot;
 that addition is not yet on GitHub because the prior push attempt failed on DNS.
+
+
+### Diagram layout revision (17 October 2026)
+
+Reworked `outputs/Diagrams/AE_CubeSat_System_Architecture.drawio` in response
+to the user's layout feedback. The three outer domains retain their positions,
+while the CubeSat now has nested camera, sensing, onboard processing, physical
+actuation, and telemetry/telecommand domains. Camera acquisition, image
+processing, target error, sensor hardware/conditioning, attitude estimation,
+guidance, control/safety, motor interface, wheel drive, telemetry packing, and
+link handling are separate cards; relevant arrows now attach to those cards.
+Increased body and connector label sizes, expanded the page to use available
+width, and rotated the vertical `reaction torque / body motion` connector
+label. Regenerated the SVG preview and synchronized both diagram files into
+`outputs/Python_sim/NR/Test_drive_2/`. XML structure and connector endpoints
+were validated; the diagram was not opened in the Windows GUI in this session.
+
+### Draw.io connector-label rotation fix (17 October 2026)
+
+The user reported that the reaction-torque label rotated in the SVG but stayed
+horizontal in draw.io. Corrected the editable XML by moving that text into a
+rotated child vertex of connector `e14` (`rotation=270`) instead of relying on
+an edge style text-rotation key, which draw.io did not apply to the edge label.
+The SVG preview already had the rotated text. Mirrored the corrected source to
+Test Drive 2 and validated both files parse with the child label attached to
+the correct edge. The desktop GUI still needs to be reopened by the user to
+confirm the visual result.
+
+
+### Make connector labels individually movable (17 October 2026)
+
+At the user's request, converted all 29 connector labels into independent
+text-box cells on the diagram layer; connector edges themselves now have no
+labels. This makes text boxes movable/editable/rotatable separately from the
+lines. Long vertical-route labels sit beside the path, and the reaction-torque
+label remains rotated. The SVG is retained as a static preview. Both editable
+files parse, each connector has preserved endpoints, and all 29 text boxes are
+standalone cells.
+
+
+### Add space between architecture domains and tighten boundaries (17 October 2026)
+
+Responded to the user's spacing feedback by widening the camera and processing
+card gutters, increasing the gap between sensor stages, widening the separation
+between actuation and telemetry domains, and adding 10–20 px between nested
+CubeSat domain rows. Tightened the Environment and Ground Station outer
+boundaries to content. Repositioned all 29 standalone connector-text boxes and
+refreshed the SVG preview. XML checks confirm all boxes stay within the page,
+all connector endpoints remain valid, and the editable source is synchronized
+with Test Drive 2.
+
+
+### User-routed connectors and label layout (17 October 2026)
+
+Using the latest user-edited diagram as the source, repositioned the 29 independent
+connector text boxes to improve readability and keep them clear of subsystem
+cards where the available routing space allowed. Preserved all 31 connector
+cells exactly, including IDs, endpoints, styles, and route waypoints. Kept the
+outer domain positions fixed; tightened the CubeSat boundary slightly without
+moving its contents, and expanded the page to fit the current layout. Refreshed
+the SVG and synchronized the draw.io source and preview to Test Drive 2.
+
+### Latest diagram and label-review copy (17 October 2026)
+
+The latest user-arranged Test Drive 2 diagram has 30 connector cells and 28
+independent connector-label boxes. Refreshed its SVG preview from that editable
+source. Added `outputs/Diagrams/AE_CubeSat_System_Architecture_version_codex.drawio`
+and SVG as a separate label-cleanup comparison copy. All 62 visible text labels
+were reviewed and corrected in that copy; cell geometries, styles, and routes
+match the latest source. The original editable diagram remains unchanged by the
+label cleanup.

@@ -1,2 +1,377 @@
-<?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="3400" height="1760" viewBox="0 0 3400 1760"><rect x="0" y="0" width="3400" height="1760" fill="#ffffff" /><defs><marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#477A9D" /></marker><marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2F8C61" /></marker><marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#BD8130" /></marker><marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#A24C8D" /></marker></defs><text x="30" y="62" font-size="38" font-family="Arial, sans-serif" font-weight="700" fill="#1b2b3a">AE CUBESAT ATTITUDE-CONTROL SYSTEM — 2D FUNCTIONAL / HARDWARE ARCHITECTURE</text><rect x="20" y="115" width="620" height="1520" rx="22" fill="#F0F7FF" stroke="#5B8DB8" stroke-width="4" /><path d="M42 115 H618 Q640 115 640 137 V170 H20 V137 Q20 115 42 115" fill="#5B8DB8" /><text x="38" y="152" font-size="25" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">ENVIRONMENT / TEST PLANT</text><rect x="680" y="115" width="1840" height="1520" rx="22" fill="#EFFAF4" stroke="#4A9B73" stroke-width="4" /><path d="M702 115 H2498 Q2520 115 2520 137 V170 H680 V137 Q680 115 702 115" fill="#4A9B73" /><text x="698" y="152" font-size="25" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">CUBESAT — ONBOARD DOMAIN</text><rect x="2560" y="115" width="820" height="1520" rx="22" fill="#FFF8EC" stroke="#C58B36" stroke-width="4" /><path d="M2582 115 H3358 Q3380 115 3380 137 V170 H2560 V137 Q2560 115 2582 115" fill="#C58B36" /><text x="2578" y="152" font-size="25" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">GROUND STATION — LOCAL PC</text><path d="M330 375 L330 405" fill="none" stroke="#477A9D" stroke-width="5" marker-end="url(#arrow-blue)" /><text x="350" y="394" font-size="16" font-family="Arial, sans-serif" fill="#477A9D" font-weight="600">scene, target XYZ</text><path d="M330 660 L330 695" fill="none" stroke="#477A9D" stroke-width="5" marker-end="url(#arrow-blue)" /><text x="350" y="684" font-size="16" font-family="Arial, sans-serif" fill="#477A9D" font-weight="600">plant state</text><path d="M330 975 L330 1005" fill="none" stroke="#477A9D" stroke-width="5" marker-end="url(#arrow-blue)" /><text x="350" y="995" font-size="16" font-family="Arial, sans-serif" fill="#477A9D" font-weight="600">synthetic observations</text><path d="M615 280 L650 280 L650 325 L710 325" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" /><text x="650" y="265" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">physical scene → image</text><path d="M615 1110 L665 1110 L665 365 L710 365" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" stroke-dasharray="12 9" /><text x="672" y="1090" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">sim frame / RLE1</text><path d="M615 845 L665 845 L665 580 L1570 580 L1570 500" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" stroke-dasharray="12 9" /><text x="1040" y="575" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">synthetic XYZ samples</text><path d="M1135 570 L1135 620" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" /><text x="1155" y="610" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">image X/Y error</text><path d="M2030 570 L2030 610 L2030 610" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" /><text x="2050" y="600" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">rates / gravity / field</text><path d="M1140 1035 L1140 1080" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="1155" y="1070" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">bounded motor command</text><path d="M1570 820 L1580 820 L1580 1260" fill="none" stroke="#477A9D" stroke-width="5" marker-end="url(#arrow-blue)" /><text x="1590" y="1010" font-size="16" font-family="Arial, sans-serif" fill="#477A9D" font-weight="600">telemetry data</text><path d="M710 1280 L660 1280 L660 530 L610 530" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="630" y="910" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">reaction torque</text><path d="M980 1035 L980 1320 L610 1320" fill="none" stroke="#2F8C61" stroke-width="5" marker-end="url(#arrow-green)" stroke-dasharray="12 9" /><text x="870" y="1300" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">virtual axes: simulator only</text><path d="M2480 1200 L2550 1200 L2550 300 L2585 300" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="2530" y="1180" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">Wi-Fi telemetry</text><path d="M2970 430 L2970 460" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="2990" y="450" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">packets</text><path d="M2970 720 L2970 750" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="2990" y="740" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">decoded data</text><path d="M2970 1085 L2970 1115" fill="none" stroke="#BD8130" stroke-width="5" marker-end="url(#arrow-amber)" /><text x="2990" y="1105" font-size="16" font-family="Arial, sans-serif" fill="#BD8130" font-weight="600">UI / test commands</text><path d="M3350 1280 L3380 1280 L3380 300 L3355 300" fill="none" stroke="#A24C8D" stroke-width="5" marker-end="url(#arrow-purple)" stroke-dasharray="12 9" /><text x="3340" y="1280" font-size="16" font-family="Arial, sans-serif" fill="#A24C8D" font-weight="600">bounded commands</text><path d="M2590 300 L2545 300 L2545 800 L2480 800" fill="none" stroke="#A24C8D" stroke-width="5" marker-end="url(#arrow-purple)" stroke-dasharray="12 9" /><text x="2520" y="585" font-size="16" font-family="Arial, sans-serif" fill="#A24C8D" font-weight="600">supervisory only</text><path d="M610 1450 L655 1450 L655 600 L610 600" fill="none" stroke="#2F8C61" stroke-width="5" stroke-dasharray="12 9" marker-end="url(#arrow-green)" /><text x="635" y="1418" font-size="16" font-family="Arial, sans-serif" fill="#2F8C61" font-weight="600">simulated pitch/roll torque</text><rect x="45" y="180" width="570" height="195" rx="14" fill="#FFFFFF" stroke="#5B8DB8" stroke-width="3" /><text x="63" y="211" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">Scene / physical target</text><text x="63" y="241" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="63" dy="0">Black point on poster; target pose and scale</tspan><tspan x="63" dy="23">Physical rig: gimbal motion, lighting, occlusion</tspan><tspan x="63" dy="23">Simulation UI: target XYZ/size, torque pulses, cover camera</tspan></text><rect x="45" y="410" width="570" height="250" rx="14" fill="#FFFFFF" stroke="#5B8DB8" stroke-width="3" /><text x="63" y="441" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">Environment dynamics</text><text x="63" y="471" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="63" dy="0">Sim_Environment Python plant: yaw wheel +</tspan><tspan x="63" dy="23">simplified pendular pitch/roll; synthetic body state</tspan><tspan x="63" dy="23">Disturbance torque XYZ × duration; reaction torque</tspan><tspan x="63" dy="23">updates attitude and camera/sensor viewpoints</tspan></text><rect x="45" y="700" width="570" height="270" rx="14" fill="#FFFFFF" stroke="#5B8DB8" stroke-width="3" /><text x="63" y="731" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">Synthetic observation generation</text><text x="63" y="761" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="63" dy="0">QVGA grayscale camera render (320×240)</tspan><tspan x="63" dy="23">Synthetic gyro XYZ, accelerometer XYZ, fixed-field</tspan><tspan x="63" dy="23">magnetometer; freshness, target visibility and</tspan><tspan x="63" dy="23">camera occlusion modeled</tspan><tspan x="63" dy="23">All values/calibration are provisional</tspan></text><rect x="45" y="1010" width="570" height="285" rx="14" fill="#E8F2FC" stroke="#5B8DB8" stroke-width="3" /><text x="63" y="1041" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">Simulator bridge / test interface</text><text x="63" y="1071" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="63" dy="0">Versioned local HTTP/JSON endpoints</tspan><tspan x="63" dy="23">Camera frame paired by sequence; bounded lossless</tspan><tspan x="63" dy="23">RLE1 transport to host SIL / Wokwi profile</tspan><tspan x="63" dy="23">Ground Station may control the simulated scene</tspan><tspan x="63" dy="23">This is not the selected physical radio protocol</tspan></text><rect x="45" y="1330" width="570" height="255" rx="14" fill="#E8F2FC" stroke="#5B8DB8" stroke-width="3" stroke-dasharray="10 7" /><text x="63" y="1361" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">Simulation-only control path</text><text x="63" y="1391" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="63" dy="0">Host SIL closes the loop against the plant</tspan><tspan x="63" dy="23">Virtual pitch/roll torques are accepted only from</tspan><tspan x="63" dy="23">simulated observations; they are not physical</tspan><tspan x="63" dy="23">actuators. Keep this path visually distinct.</tspan></text><rect x="715" y="180" width="840" height="390" rx="14" fill="#FFFFFF" stroke="#4A9B73" stroke-width="3" /><text x="733" y="211" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">CAMERA SYSTEM — XIAO ESP32-S3 SENSE</text><text x="733" y="241" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="733" dy="0">Hardware: OV5640 camera (confirm kit revision; some board</tspan><tspan x="733" dy="23">variants may differ); autofocus path; QVGA grayscale frame</tspan><tspan x="733" dy="23">Process: threshold dark pixels → binary mask → 8-neighbour</tspan><tspan x="733" dy="23">coherence filter → centroid → offset from optical centre</tspan><tspan x="733" dy="23">Output: image X/Y error for pointing; preview + error for GS</tspan><tspan x="733" dy="23">Optional asymmetric marker estimates roll; point target alone</tspan><tspan x="733" dy="23">has no camera roll cue. Pixel-to-angle needs calibration.</tspan></text><rect x="1580" y="180" width="900" height="390" rx="14" fill="#FFFFFF" stroke="#4A9B73" stroke-width="3" /><text x="1598" y="211" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">SENSOR SYSTEM — SHARED I²C INPUTS</text><text x="1598" y="241" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="1598" dy="0">MPU-6050: 3-axis gyro + accelerometer; breakout voltage /</tspan><tspan x="1598" dy="23">logic levels must be checked before wiring ("5.5 V" is not</tspan><tspan x="1598" dy="23">a safe bare-chip rating). Startup bias, scaling, timestamps.</tspan><tspan x="1598" dy="23">LIS3MDL: XYZ magnetic field; selectable ±4/8/12/16 G.</tspan><tspan x="1598" dy="23">Firmware uses I²C; mounting/axis map and magnetic calibration</tspan><tspan x="1598" dy="23">are open. Physical magnetic correction is disabled pending</tspan><tspan x="1598" dy="23">calibration and motor-interference checks.</tspan></text><rect x="715" y="625" width="1765" height="405" rx="14" fill="#FFFFFF" stroke="#4A9B73" stroke-width="3" /><text x="733" y="656" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">ONBOARD PROCESSING — SEEED XIAO ESP32-S3 SENSE</text><text x="733" y="686" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="733" dy="0">Camera + sensor observations enter the onboard 50 Hz reference loop.</tspan><tspan x="733" dy="23">Estimate: yaw-only gyro integration; SIL can use a known synthetic magnetic reference;</tspan><tspan x="733" dy="23">physical firmware is relative gyro yaw until mounting and magnetic calibration are known.</tspan><tspan x="733" dy="23">Visual pointing uses target image error + body-Y gyro rate; target loss falls back to rate damping.</tspan><tspan x="733" dy="23">Bounded control orders, age/validity checks, operating modes and watchdog protections.</tspan><tspan x="733" dy="23">Simulation source adds virtual pitch (image Y) / roll (optional marker) torques; physical</tspan><tspan x="733" dy="23">motor path is yaw-only. Controller gains, limits and plant constants remain uncalibrated.</tspan></text><rect x="715" y="1085" width="850" height="445" rx="14" fill="#FFFDF7" stroke="#C58B36" stroke-width="3" stroke-dasharray="10 7" /><text x="733" y="1116" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">ACTUATION SYSTEM — PHYSICAL PATH</text><text x="733" y="1146" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="733" dy="0">Seeed XIAO → bounded motor command → moteus r4.11</tspan><tspan x="733" dy="23">motor controller → 5208 Kv330 BLDC + reaction wheel</tspan><tspan x="733" dy="23">Wheel momentum change gives opposite body torque.</tspan><tspan x="733" dy="23">Interface candidate: TTL UART on moteus AUX2; ESP32-S3</tspan><tspan x="733" dy="23">TWAI is Classical CAN and cannot directly send CAN-FD.</tspan><tspan x="733" dy="23">UART wiring, drive config, motor power, watchdog and</tspan><tspan x="733" dy="23">safe stop are not built / hardware-verified.</tspan><tspan x="733" dy="23">Only yaw is physically actuated in current scope.</tspan></text><rect x="1590" y="1085" width="890" height="445" rx="14" fill="#FFFFFF" stroke="#4A9B73" stroke-width="3" /><text x="1608" y="1116" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">TELEMETRY / TELECOMMAND — ONBOARD</text><text x="1608" y="1146" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="1608" dy="0">Telemetry inputs: camera error + preview metadata, gyro /</tspan><tspan x="1608" dy="23">accel / mag XYZ, yaw estimate, mode/fault, controller and</tspan><tspan x="1608" dy="23">actuator housekeeping, timestamps and freshness.</tspan><tspan x="1608" dy="23">XIAO Wi-Fi packet/link layer → Ground Station.</tspan><tspan x="1608" dy="23">Simulation: local HTTP/JSON + sequence-paired RLE1 frame.</tspan><tspan x="1608" dy="23">Physical Wi-Fi/radio protocol, packet framing, security and</tspan><tspan x="1608" dy="23">replay rules are not selected.</tspan><tspan x="1608" dy="23">Ground commands are supervisory only, not the control loop.</tspan></text><rect x="2590" y="180" width="760" height="245" rx="14" fill="#FFFFFF" stroke="#C58B36" stroke-width="3" /><text x="2608" y="211" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">WI-FI / DATA LINK BOUNDARY</text><text x="2608" y="241" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="2608" dy="0">Current simulator: local HTTP/JSON bridge</tspan><tspan x="2608" dy="23">Physical link and TM/TC protocol: TBD</tspan><tspan x="2608" dy="23">Telemetry flows to PC; bounded commands return</tspan></text><rect x="2590" y="465" width="760" height="250" rx="14" fill="#FFFFFF" stroke="#C58B36" stroke-width="3" /><text x="2608" y="496" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">GROUND-STATION RECEIVE / DECODE</text><text x="2608" y="526" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="2608" dy="0">Validate and decode telemetry; pair frame metadata</tspan><tspan x="2608" dy="23">with the matching preview; display sample age / link state</tspan><tspan x="2608" dy="23">Keep invalid or stale samples out of trend lines</tspan></text><rect x="2590" y="755" width="760" height="325" rx="14" fill="#FFFFFF" stroke="#C58B36" stroke-width="3" /><text x="2608" y="786" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">OPERATOR UI</text><text x="2608" y="816" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="2608" dy="0">Time history: target direction / pointing error</tspan><tspan x="2608" dy="23">Camera image with target centroid and error overlay</tspan><tspan x="2608" dy="23">Housekeeping, mode, yaw estimate, sensor freshness,</tspan><tspan x="2608" dy="23">actuator status and faults</tspan><tspan x="2608" dy="23">Display simulator truth separately from CubeSat telemetry</tspan></text><rect x="2590" y="1120" width="760" height="350" rx="14" fill="#FFFFFF" stroke="#C58B36" stroke-width="3" /><text x="2608" y="1151" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">LOGGING + SUPERVISORY COMMANDS</text><text x="2608" y="1181" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="2608" dy="0">CSV telemetry logging on local PC</tspan><tspan x="2608" dy="23">Bounded commands: PING, enumerated modes, relative</tspan><tspan x="2608" dy="23">yaw step, timed wheel-speed commissioning</tspan><tspan x="2608" dy="23">Acknowledgement/status returned in telemetry</tspan><tspan x="2608" dy="23">No PC-side target error computation closes the loop</tspan></text><rect x="2590" y="1510" width="760" height="90" rx="14" fill="#FFF0D8" stroke="#C58B36" stroke-width="3" /><text x="2608" y="1541" font-size="19" font-family="Arial, sans-serif" font-weight="700" fill="#203648">EVIDENCE / LIMITS</text><text x="2608" y="1571" font-size="16" font-family="Arial, sans-serif" fill="#2c3e50"><tspan x="2608" dy="0">Host SIL verified; firmware, Wokwi, live network and hardware remain open</tspan></text><text x="700" y="1680" font-size="17" font-family="Arial, sans-serif" fill="#263746">Solid green: observation flow  |  Amber: physical actuator/interface candidate  |  Dashed green: simulation-only virtual axes  |  Dashed purple: bounded supervisory commands  |  Dashed amber module: pending hardware decision/verification</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="4600" height="2200" viewBox="0 0 4600 2200">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>
+<path d="M 2575 993.6 L 2290 900 L 2016.5 995" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1431.5 995 L 1600 1200 L 1729 1575.5" fill="none" stroke="#BD8130" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2631.5 331.4 L 3080 304.4 L 3080 1850 L 1724 1850 L 1729 1575.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1729 1575.5 L 2000 1530 L 2271.5 1512.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2486.5 633.9 L 2820 660 L 2820 1005.8 L 2575 993.6" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2631.5 331.4 L 3010 370 L 3010 947 L 2575 993.6" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1431.5 995 L 1650 1240 L 2010 1240 L 2010 1480 L 2271.5 1512.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 330 280 L 680 260 L 680 490 L 330 525" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 330 525 L 680 580 L 680 810 L 330 787.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 330 787.5 L 330 1065" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 330 1065 L 820 1060 L 820 340 L 1401.5 331.4" fill="none" stroke="#2F8C61" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 330 280 L 1050 220 L 1050 300 L 1401.5 331.4" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 330 787.5 L 870 840 L 870 630 L 1546.5 633.9" fill="none" stroke="#2F8C61" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 1401.5 331.4 L 2016.5 331.4" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2016.5 331.4 L 2631.5 331.4" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1546.5 633.9 L 2486.5 633.9" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2016.5 995 L 1431.5 995" fill="none" stroke="#2F8C61" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1431.5 995 L 1040 980 L 1040 1390 L 330 1337.5" fill="none" stroke="#25815A" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 330 1337.5 L 750 1290 L 750 550 L 330 525" fill="none" stroke="#25815A" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 1339 1577.5 L 990 1560 L 990 520 L 330 525" fill="none" stroke="#BD8130" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2486.5 633.9 L 2850 1270 L 2030 1270 L 2030 1440 L 2271.5 1512.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 1339 1577.5 L 1197.5 1820 L 2010 1820 L 2010 1580 L 2271.5 1512.5" fill="none" stroke="#477A9D" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2271.5 1512.5 L 2746.5 1512.5" fill="none" stroke="#AD7528" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 2746.5 1512.5 L 3340 1476.9 L 3340 282.5 L 3920 317.5" fill="none" stroke="#AD7528" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 3920 317.5 L 3920 555" fill="none" stroke="#AD7528" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 3920 555 L 3920 825" fill="none" stroke="#AD7528" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 3920 825 L 3920 1150" fill="none" stroke="#AD7528" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M 3920 1150 L 4410 1115 L 4410 282.5 L 3920 317.5" fill="none" stroke="#A24C8D" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 3920 1150 L 3450 1190 L 3450 1690 L 2511.5 1717.5" fill="none" stroke="#A24C8D" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<path d="M 2511.5 1717.5 L 1990 1697.5 L 1990 1270 L 1285 1270 L 1431.5 995" fill="none" stroke="#A24C8D" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#arrow)"/>
+<rect x="20" y="115" width="620" height="1375" rx="15" fill="#F0F7FF" stroke="#5B8DB8" stroke-width="4"/>
+<path d="M35 159H625" stroke="#5B8DB8" stroke-width="2" opacity=".55"/>
+<text x="35" y="145" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">ENVIRONMENT / TEST PLANT</text>
+<rect x="1096.5" y="106.4" width="2063.5" height="1780" rx="15" fill="#EFFAF4" stroke="#4A9B73" stroke-width="4"/>
+<path d="M1111.5 150.4H3145" stroke="#4A9B73" stroke-width="2" opacity=".55"/>
+<text x="1111.5" y="136.4" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">CUBESAT — ONBOARD DOMAIN</text>
+<rect x="3510" y="150" width="820" height="1375" rx="15" fill="#FFF8EC" stroke="#C58B36" stroke-width="4"/>
+<path d="M3525 194H4315" stroke="#C58B36" stroke-width="2" opacity=".55"/>
+<text x="3525" y="180" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">GROUND STATION — LOCAL PC</text>
+<rect x="45" y="180" width="570" height="200" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="59" y="208" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="59" dy="0">SCENE / TARGET</tspan>
+<tspan x="59" dy="25">Black point on poster; pose, scale, lighting and</tspan>
+<tspan x="59" dy="25">occlusion.</tspan>
+<tspan x="59" dy="25">Physical gimbal or simulator controls set target XYZ</tspan>
+<tspan x="59" dy="25">and disturbances.</tspan>
+</text>
+<rect x="45" y="415" width="570" height="220" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="59" y="443" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="59" dy="0">PLANT DYNAMICS</tspan>
+<tspan x="59" dy="25">Python Sim_Environment: yaw reaction wheel plus</tspan>
+<tspan x="59" dy="25">simplified pendular pitch/roll.</tspan>
+<tspan x="59" dy="25">Applies disturbance torque and updates body attitude.</tspan>
+</text>
+<rect x="45" y="670" width="570" height="235" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="59" y="698" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="59" dy="0">SYNTHETIC SENSORS + CAMERA</tspan>
+<tspan x="59" dy="25">QVGA grayscale render (320×240); synthetic gyro,</tspan>
+<tspan x="59" dy="25">accelerometer and fixed-field magnetometer.</tspan>
+<tspan x="59" dy="25">Models visibility, freshness and occlusion; parameters</tspan>
+<tspan x="59" dy="25">are provisional.</tspan>
+</text>
+<rect x="45" y="940" width="570" height="250" rx="12" fill="#E8F2FC" stroke="#5B8DB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="59" y="968" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="59" dy="0">SIMULATOR BRIDGE</tspan>
+<tspan x="59" dy="25">Versioned local HTTP/JSON; sequence-paired RLE1 camera</tspan>
+<tspan x="59" dy="25">frames to host SIL / Wokwi profile.</tspan>
+<tspan x="59" dy="25">Ground Station may control simulated scenes; this is</tspan>
+<tspan x="59" dy="25">not the physical radio protocol.</tspan>
+</text>
+<rect x="45" y="1225" width="570" height="225" rx="12" fill="#E8F2FC" stroke="#5B8DB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="59" y="1253" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="59" dy="0">HOST SIL VIRTUAL AXES</tspan>
+<tspan x="59" dy="25">Simulation-source-only pitch/roll virtual torques</tspan>
+<tspan x="59" dy="25">close the host SIL loop against the plant.</tspan>
+<tspan x="59" dy="25">These axes are not physical actuators.</tspan>
+</text>
+<rect x="1121.5" y="171.4" width="1790" height="290" rx="15" fill="#F3FBF6" stroke="#4A9B73" stroke-width="4"/>
+<path d="M1136.5 215.4H2896.5" stroke="#4A9B73" stroke-width="2" opacity=".55"/>
+<text x="1136.5" y="201.4" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">CAMERA SYSTEM · XIAO ESP32-S3 SENSE</text>
+<rect x="1146.5" y="231.4" width="510" height="200" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="1160.5" y="259.4" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1160.5" dy="0">OPTICAL INPUT</tspan>
+<tspan x="1160.5" dy="25">OV5640 camera</tspan>
+<tspan x="1160.5" dy="25">Kit revision to confirm</tspan>
+<tspan x="1160.5" dy="25">AF + QVGA grayscale</tspan>
+</text>
+<rect x="1761.5" y="231.4" width="510" height="200" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="1775.5" y="259.4" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1775.5" dy="0">IMAGE PIPELINE</tspan>
+<tspan x="1775.5" dy="25">Dark-pixel threshold</tspan>
+<tspan x="1775.5" dy="25">Binary mask → 8-neighbour coherence filter</tspan>
+<tspan x="1775.5" dy="25">Compute target centroid</tspan>
+</text>
+<rect x="2376.5" y="231.4" width="510" height="200" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="2390.5" y="259.4" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2390.5" dy="0">POINTING OBSERVATION</tspan>
+<tspan x="2390.5" dy="25">Centroid offset from optical centre → image X/Y</tspan>
+<tspan x="2390.5" dy="25">error</tspan>
+<tspan x="2390.5" dy="25">Optional asymmetric marker gives roll cue; point</tspan>
+<tspan x="2390.5" dy="25">alone does not</tspan>
+<tspan x="2390.5" dy="25">Pixel-to-angle needs calibration</tspan>
+</text>
+<rect x="1121.5" y="506.4" width="1790" height="225" rx="15" fill="#F3FBF6" stroke="#4A9B73" stroke-width="4"/>
+<path d="M1136.5 550.4H2896.5" stroke="#4A9B73" stroke-width="2" opacity=".55"/>
+<text x="1136.5" y="536.4" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">SENSOR SYSTEM · SHARED I²C INPUTS</text>
+<rect x="1146.5" y="561.4" width="800" height="145" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="1160.5" y="589.4" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1160.5" dy="0">IMU + MAGNETOMETER</tspan>
+<tspan x="1160.5" dy="25">MPU-6050: 3-axis gyro + accelerometer</tspan>
+<tspan x="1160.5" dy="25">LIS3MDL: XYZ field, ±4/8/12/16 G range</tspan>
+<tspan x="1160.5" dy="25">Check breakout voltage/logic levels before wiring</tspan>
+</text>
+<rect x="2086.5" y="561.4" width="800" height="145" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="2100.5" y="589.4" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2100.5" dy="0">SAMPLE CONDITIONING</tspan>
+<tspan x="2100.5" dy="25">I²C acquisition, startup bias, scale, timestamps and freshness</tspan>
+<tspan x="2100.5" dy="25">Mounting/axis map and magnetic calibration remain open;</tspan>
+<tspan x="2100.5" dy="25">physical magnetic correction disabled pending checks</tspan>
+</text>
+<rect x="1121.5" y="800" width="1790" height="390" rx="15" fill="#EDF8F1" stroke="#4A9B73" stroke-width="4"/>
+<path d="M1136.5 844H2896.5" stroke="#4A9B73" stroke-width="2" opacity=".55"/>
+<text x="1136.5" y="830" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">ONBOARD PROCESSING · SEEED XIAO ESP32-S3 SENSE · NOMINAL 50 Hz</text>
+<rect x="1761.5" y="865" width="510" height="260" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="1775.5" y="893" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1775.5" dy="0">POINTING / GUIDANCE</tspan>
+<tspan x="1775.5" dy="25">Camera image X/Y error + body-Y gyro rate</tspan>
+<tspan x="1775.5" dy="25">Target loss → IMU rate damping</tspan>
+<tspan x="1775.5" dy="25">Simulation marker may provide roll cue</tspan>
+</text>
+<rect x="1176.5" y="865" width="510" height="260" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="1190.5" y="893" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1190.5" dy="0">CONTROL + SAFETY</tspan>
+<tspan x="1190.5" dy="25">Bounded motor/control orders</tspan>
+<tspan x="1190.5" dy="25">Input age and validity checks</tspan>
+<tspan x="1190.5" dy="25">Operating modes, watchdog and fault handling</tspan>
+<tspan x="1190.5" dy="25">Gains / plant constants not calibrated</tspan>
+</text>
+<rect x="2320" y="863.6" width="510" height="260" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="2334" y="891.6" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2334" dy="0">ATTITUDE ESTIMATE</tspan>
+<tspan x="2334" dy="25">Yaw-only gyro integration</tspan>
+<tspan x="2334" dy="25">SIL may use known synthetic magnetic reference</tspan>
+<tspan x="2334" dy="25">Physical yaw remains relative until calibrated</tspan>
+</text>
+<rect x="1121.5" y="1330" width="840" height="460" rx="15" fill="#FFF9ED" stroke="#C58B36" stroke-width="4"/>
+<path d="M1136.5 1374H1946.5" stroke="#C58B36" stroke-width="2" opacity=".55"/>
+<text x="1136.5" y="1360" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">ACTUATION SYSTEM · PHYSICAL PATH (YAW ONLY)</text>
+<rect x="1156.5" y="1395" width="365" height="365" rx="12" fill="#FFFDF7" stroke="#C58B36" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="1170.5" y="1423" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1170.5" dy="0">DRIVE + REACTION WHEEL</tspan>
+<tspan x="1170.5" dy="25">moteus r4.11</tspan>
+<tspan x="1170.5" dy="25">5208 Kv330 BLDC motor + wheel</tspan>
+<tspan x="1170.5" dy="25">Wheel momentum change produces</tspan>
+<tspan x="1170.5" dy="25">opposite body torque</tspan>
+</text>
+<rect x="1546.5" y="1393" width="365" height="365" rx="12" fill="#FFFDF7" stroke="#C58B36" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="1560.5" y="1421" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="1560.5" dy="0">MOTOR INTERFACE</tspan>
+<tspan x="1560.5" dy="25">Candidate: TTL UART on moteus</tspan>
+<tspan x="1560.5" dy="25">AUX2</tspan>
+<tspan x="1560.5" dy="25">ESP32-S3 TWAI is Classical CAN,</tspan>
+<tspan x="1560.5" dy="25">not CAN-FD</tspan>
+<tspan x="1560.5" dy="25">Wiring, drive config, watchdog</tspan>
+<tspan x="1560.5" dy="25">and safe stop unverified</tspan>
+</text>
+<rect x="2061.5" y="1330" width="900" height="460" rx="15" fill="#F7F3FA" stroke="#8A65A3" stroke-width="4"/>
+<path d="M2076.5 1374H2946.5" stroke="#8A65A3" stroke-width="2" opacity=".55"/>
+<text x="2076.5" y="1360" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#263746">TELEMETRY / TELECOMMAND · ONBOARD</text>
+<rect x="2076.5" y="1395" width="390" height="235" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="2090.5" y="1423" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2090.5" dy="0">HOUSEKEEPING + PACKING</tspan>
+<tspan x="2090.5" dy="25">Camera error / preview metadata,</tspan>
+<tspan x="2090.5" dy="25">sensor XYZ, estimate,</tspan>
+<tspan x="2090.5" dy="25">mode/fault, control + actuator</tspan>
+<tspan x="2090.5" dy="25">status, timestamps/freshness</tspan>
+<tspan x="2090.5" dy="25">Frame and metadata stay</tspan>
+<tspan x="2090.5" dy="25">sequence-paired</tspan>
+</text>
+<rect x="2546.5" y="1395" width="400" height="235" rx="12" fill="#FFFDF7" stroke="#C58B36" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="2560.5" y="1423" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2560.5" dy="0">WI-FI / LINK LAYER</tspan>
+<tspan x="2560.5" dy="25">Simulation: local HTTP/JSON + RLE1</tspan>
+<tspan x="2560.5" dy="25">frame</tspan>
+<tspan x="2560.5" dy="25">Physical Wi-Fi/radio, TM/TC framing,</tspan>
+<tspan x="2560.5" dy="25">security and replay</tspan>
+<tspan x="2560.5" dy="25">behavior are not selected</tspan>
+</text>
+<rect x="2076.5" y="1655" width="870" height="125" rx="12" fill="#FFFFFF" stroke="#6B8795" stroke-width="2"/>
+<text x="2090.5" y="1683" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="2090.5" dy="0">SUPERVISORY COMMAND INTAKE</tspan>
+<tspan x="2090.5" dy="25">Ground commands are bounded and supervisory.</tspan>
+<tspan x="2090.5" dy="25">Control loop remains onboard; PC does not close pointing loop.</tspan>
+</text>
+<rect x="1680" y="1200" width="294" height="42" rx="12" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1694" y="1227" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1694" dy="0">estimate, mode, fault +</tspan>
+<tspan x="1694" dy="24">Comands</tspan>
+</text>
+<rect x="3530" y="215" width="780" height="205" rx="12" fill="#FFFFFF" stroke="#C58B36" stroke-width="2"/>
+<text x="3544" y="243" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="3544" dy="0">RECEIVE / LINK ENDPOINT</tspan>
+<tspan x="3544" dy="25">Simulation: local HTTP/JSON bridge</tspan>
+<tspan x="3544" dy="25">Physical link / TM-TC protocol TBD</tspan>
+<tspan x="3544" dy="25">Telemetry up; bounded commands return</tspan>
+</text>
+<rect x="3530" y="455" width="780" height="200" rx="12" fill="#FFFFFF" stroke="#C58B36" stroke-width="2"/>
+<text x="3544" y="483" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="3544" dy="0">DECODE + VALIDATE</tspan>
+<tspan x="3544" dy="25">Decode telemetry and pair preview with metadata.</tspan>
+<tspan x="3544" dy="25">Show sample age/link state; exclude stale or invalid samples.</tspan>
+</text>
+<rect x="3530" y="690" width="780" height="270" rx="12" fill="#FFFFFF" stroke="#C58B36" stroke-width="2"/>
+<text x="3544" y="718" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="3544" dy="0">OPERATOR UI</tspan>
+<tspan x="3544" dy="25">Time history of pointing error / direction</tspan>
+<tspan x="3544" dy="25">Camera preview with centroid/error overlay</tspan>
+<tspan x="3544" dy="25">Housekeeping, mode, yaw estimate, freshness, faults</tspan>
+<tspan x="3544" dy="25">Show simulator truth separately from spacecraft telemetry</tspan>
+</text>
+<rect x="3530" y="995" width="780" height="310" rx="12" fill="#FFFFFF" stroke="#C58B36" stroke-width="2"/>
+<text x="3544" y="1023" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="3544" dy="0">LOGGING + SUPERVISORY COMMANDS</tspan>
+<tspan x="3544" dy="25">CSV telemetry logs</tspan>
+<tspan x="3544" dy="25">PING, enumerated modes, relative yaw step, timed wheel-speed commissioning</tspan>
+<tspan x="3544" dy="25">Acknowledgements/status return through telemetry</tspan>
+<tspan x="3544" dy="25">No PC-side pointing control</tspan>
+</text>
+<rect x="3530" y="1340" width="780" height="150" rx="12" fill="#FFFFFF" stroke="#C58B36" stroke-width="2"/>
+<text x="3544" y="1368" font-family="Arial,sans-serif" font-size="20" fill="#263746">
+<tspan x="3544" dy="0">EVIDENCE / LIMITS</tspan>
+<tspan x="3544" dy="25">Host SIL verified. Firmware build, Wokwi, live network and hardware remain</tspan>
+<tspan x="3544" dy="25">unverified.</tspan>
+</text>
+<text x="20" y="42" font-family="Arial,sans-serif" font-size="24" fill="#263746">
+<tspan x="20" dy="0">AE CUBESAT ATTITUDE-CONTROL SYSTEM — FUNCTIONAL / HARDWARE ARCHITECTURE</tspan>
+<tspan x="20" dy="29">Nested domains show subsystem ownership; arrows show exchanged data and commands.</tspan>
+</text>
+<text x="80" y="2056" font-family="Arial,sans-serif" font-size="36" fill="#263746">
+<tspan x="80" dy="0">LEGEND Green solid: sensor / visual data Amber solid: physical actuator or link Green dashed: simulation-only Purple</tspan>
+<tspan x="80" dy="41">dashed: supervisory commands Dashed amber cards: pending hardware/interface verification</tspan>
+</text>
+<g><rect x="345" y="910" width="270" height="25" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="480" y="918.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="480" dy="0">synthetic image + XYZ</tspan>
+<tspan x="480" dy="21">samples</tspan>
+</text></g>
+<g><rect x="1480" y="280" width="164" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1562" y="307.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1562" dy="0">QVGA grayscale</tspan>
+</text></g>
+<g><rect x="2000" y="268" width="264" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="2132" y="295.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="2132" dy="0">binary target / centroid</tspan>
+</text></g>
+<g><rect x="1760" y="590" width="174" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1847" y="617.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1847" dy="0">raw XYZ samples</tspan>
+</text></g>
+<g><rect x="1500" y="960" width="184" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1592" y="977.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1592" dy="0">bounded pointing</tspan>
+<tspan x="1592" dy="21">request</tspan>
+</text></g>
+<g><rect x="2016.5" y="880" width="240.25" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="2136.62" y="897.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="2136.62" dy="0">yaw estimate + body-Y</tspan>
+<tspan x="2136.62" dy="21">rate</tspan>
+</text></g>
+<g><rect x="1780" y="880" width="229.5" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1894.75" y="897.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1894.75" dy="0">image X/Y error +</tspan>
+<tspan x="1894.75" dy="21">preview</tspan>
+</text></g>
+<g><rect x="2460" y="1220" width="244" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="2582" y="1247.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="2582" dy="0">sensor XYZ + freshness</tspan>
+</text></g>
+<g><rect x="2300" y="745" width="354" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="2477" y="772.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="2477" dy="0">fresh XYZ rates / gravity / field</tspan>
+</text></g>
+<g><rect x="1410" y="1160" width="184" height="60" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1502" y="1175.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1502" dy="0">bounded yaw</tspan>
+<tspan x="1502" dy="21">torque</tspan>
+<tspan x="1502" dy="21">speed command</tspan>
+</text></g>
+<g transform="rotate(90 3081 1163)"><rect x="2914" y="1142" width="334" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3081" y="1169.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3081" dy="0">target error + preview metadata</tspan>
+</text></g>
+<g><rect x="1410" y="1829" width="234" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1527" y="1856.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1527" dy="0">actuator housekeeping</tspan>
+</text></g>
+<g><rect x="3773" y="620" width="294" height="23" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3920" y="627.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3920" dy="0">decoded data + paired</tspan>
+<tspan x="3920" dy="21">preview</tspan>
+</text></g>
+<g><rect x="3765" y="930" width="310" height="23" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3920" y="937.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3920" dy="0">operator view / test</tspan>
+<tspan x="3920" dy="21">selection</tspan>
+</text></g>
+<g><rect x="3750" y="390" width="340" height="23" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3920" y="397.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3920" dy="0">TM/TC packets (physical framing</tspan>
+<tspan x="3920" dy="21">TBD)</tspan>
+</text></g>
+<g transform="rotate(90 677.5 375)"><rect x="572.5" y="360" width="210" height="30" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="677.5" y="371.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="677.5" dy="0">scene pose / target</tspan>
+<tspan x="677.5" dy="21">XYZ</tspan>
+</text></g>
+<g transform="rotate(90 680 693.5)"><rect x="576.5" y="681" width="207" height="25" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="680" y="689.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="680" dy="0">attitude + target</tspan>
+<tspan x="680" dy="21">visibility</tspan>
+</text></g>
+<g transform="rotate(270 820 588.4)"><rect x="663" y="573.4" width="314" height="30" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="820" y="584.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="820" dy="0">simulated frame + sequence</tspan>
+<tspan x="820" dy="21">(RLE1)</tspan>
+</text></g>
+<g><rect x="700" y="206.4" width="270" height="25" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="835" y="215.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="835" dy="0">physical scene → optical</tspan>
+<tspan x="835" dy="21">image</tspan>
+</text></g>
+<g transform="rotate(270 749 933.4)"><rect x="592" y="914.4" width="314" height="38" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="749" y="940.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="749" dy="0">simulated pitch / roll torque</tspan>
+</text></g>
+<g><rect x="2265.5" y="1471.5" width="184" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="2357.5" y="1499.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="2357.5" dy="0">packed telemetry</tspan>
+</text></g>
+<g transform="rotate(270 3341 776.6)"><rect x="3254" y="755.6" width="174" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3341" y="783.25" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3341" dy="0">Wi-Fi telemetry</tspan>
+</text></g>
+<g transform="rotate(270 4410 698.8)"><rect x="4233" y="679.8" width="354" height="38" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="4410" y="705.45" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="4410" dy="0">bounded command / acknowledgement</tspan>
+</text></g>
+<g transform="rotate(90 3451 1477)"><rect x="3304" y="1456" width="294" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="3451" y="1483.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="3451" dy="0">bounded supervisory command</tspan>
+</text></g>
+<g><rect x="1300" y="1250" width="284" height="42" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="1442" y="1277.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="1442" dy="0">supervisory command → XIAO</tspan>
+</text></g>
+<g transform="rotate(270 988 1063.8)"><rect x="838" y="1045.8" width="300" height="36" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="988" y="1059.95" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="988" dy="0">reaction torque / body</tspan>
+<tspan x="988" dy="21">motion</tspan>
+</text></g>
+<g><rect x="892.5" y="600.7" width="191" height="66.4" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="988" y="619.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="988" dy="0">synthetic gyro /</tspan>
+<tspan x="988" dy="21">accel</tspan>
+<tspan x="988" dy="21">/ mag XYZ</tspan>
+</text></g>
+<g><rect x="715" y="1359.4" width="210" height="60" rx="7" fill="#FFFFFF" stroke="#C6D2D9" stroke-width="2"/>
+<text x="820" y="1364.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" fill="#263746">
+<tspan x="820" dy="0">virtual pitch/roll</tspan>
+<tspan x="820" dy="21">torque</tspan>
+<tspan x="820" dy="21">simulator source</tspan>
+<tspan x="820" dy="21">only</tspan>
+</text></g>
+</svg>

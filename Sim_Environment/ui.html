@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CubeSat simulation environment</title>
+  <style>
+    :root { color-scheme: light; font: 15px system-ui, sans-serif; color: #17202a; }
+    body { margin: 0 auto; padding: 22px; max-width: 1100px; background: #f4f7fa; }
+    h1 { margin: 0 0 5px; font-size: 1.55rem; }
+    p { margin: 4px 0 16px; color: #52616d; }
+    .muted { color: #687783; font-size: .9rem; margin: 7px 0 12px; }
+    main { display: grid; grid-template-columns: minmax(330px, 1.2fr) minmax(300px, .8fr); gap: 16px; }
+    section { background: white; padding: 16px; border: 1px solid #dce4ea; border-radius: 10px; }
+    canvas { display: block; width: 100%; height: 360px; background: linear-gradient(#edf5fb, #fff); border-radius: 7px; touch-action: none; cursor: grab; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    label { display: block; font-size: .84rem; color: #425466; margin: 8px 0 3px; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #bdc9d3; border-radius: 5px; }
+    button { margin-top: 12px; padding: 9px 12px; border: 0; border-radius: 5px; color: white; background: #1769aa; cursor: pointer; }
+    .readout { font-family: ui-monospace, monospace; line-height: 1.8; }
+    .note { font-size: .82rem; color: #7b4f00; background: #fff7df; padding: 9px; border-radius: 5px; }
+    @media(max-width: 760px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>CubeSat attitude-control simulation</h1>
+  <p>Three-axis gimbal scene: yaw reaction wheel plus host-SIL/ESP32 simulator virtual pitch/roll control. The center axes show body X=pitch, Y=yaw, Z=roll/camera; all displayed values are simulated.</p>
+  <main>
+    <section>
+      <canvas id="scene" width="720" height="430" aria-label="Interactive 3D scene. Drag to orbit, use the mouse wheel to zoom, and double-click to reset."></canvas>
+      <p class="muted">Drag to orbit · scroll to zoom · double-click to reset view · body axes: X pitch (red), Y yaw (green), Z roll/camera (blue)</p>
+      <div class="readout" id="readout">Waiting for simulation…</div>
+    </section>
+    <section>
+      <h2>Target position and size</h2>
+      <div class="grid">
+        <div><label for="tx">X (m)</label><input id="tx" type="number" step="0.1" value="0"></div>
+        <div><label for="ty">Y (m)</label><input id="ty" type="number" step="0.1" value="0"></div>
+        <div><label for="tz">Z (m)</label><input id="tz" type="number" step="0.1" min="0.1" value="2"></div>
+      </div>
+      <label for="scale">Target diameter / scale (m)</label><input id="scale" type="number" step="0.01" min="0.001" max="2" value="0.1">
+      <button onclick="setTarget()">Apply target</button>
+      <label><input id="rollMarker" type="checkbox" onchange="setRollMarker(this.checked)"> Use asymmetric camera-roll marker (simulation test)</label>
+      <h2>External torque pulse</h2>
+      <p>Torque in N·m. Model body axes: X=pitch, Y=yaw, Z=roll. XYZ disturbances affect the gimbal; only yaw has an active wheel controller.</p>
+      <div class="grid">
+        <div><label for="txx">Torque X</label><input id="txx" type="number" step="0.001" value="0"></div>
+        <div><label for="tyy">Torque Y</label><input id="tyy" type="number" step="0.001" value="0"></div>
+        <div><label for="tzz">Torque Z</label><input id="tzz" type="number" step="0.001" value="0.01"></div>
+      </div>
+      <label for="duration">Duration (simulation s)</label><input id="duration" type="number" min="0" max="60" step="0.1" value="1">
+      <button onclick="applyTorque()">Apply torque pulse</button>
+      <h2>Camera occlusion</h2>
+      <label for="occlusion">Occlusion duration (simulation s)</label><input id="occlusion" type="number" min="0" max="60" step="0.1" value="2">
+      <button onclick="occludeCamera()">Cover camera</button>
+      <p id="message" role="status"></p>
+      <div class="note">Roll and pitch use a linear pendulum approximation with provisional inertia, damping, and restoring stiffness. The yaw reaction wheel is also a placeholder model; calibrate all parameters from the rig before interpreting results physically.</div>
+    </section>
+  </main>
+<script>
+const canvas = document.getElementById('scene'), ctx = canvas.getContext('2d');
+let state = null;
+const view = { yaw: 0, pitch: 0.12, distance: 5.0, dragging: false, lastX: 0, lastY: 0 };
+async function post(payload) {
+  const message = document.getElementById('message');
+  try {
+    const r = await fetch('/api/control', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const j = await r.json().catch(()=>({error:`Request failed (${r.status})`}));
+    message.textContent = r.ok ? 'Applied.' : (j.error || `Request failed (${r.status})`);
+  } catch (_error) {
+    message.textContent = 'Simulation link unavailable; input was not applied.';
+  }
+}
+function numberInput(id) { return Number(document.getElementById(id).value); }
+function setTarget() {
+  post({target_xyz_m:{x:numberInput('tx'),y:numberInput('ty'),z:numberInput('tz')},target_scale:numberInput('scale')});
+}
+function setRollMarker(enabled) { post({camera_roll_marker_enabled:enabled}); }
+function applyTorque() {
+  post({external_torque_nm:{x:numberInput('txx'),y:numberInput('tyy'),z:numberInput('tzz')},duration_s:numberInput('duration')});
+}
+function occludeCamera() { post({camera_occlusion_s:numberInput('occlusion')}); }
+function rotateBody(p, a){const cr=Math.cos(a.roll_rad),sr=Math.sin(a.roll_rad),cp=Math.cos(a.pitch_rad),sp=Math.sin(a.pitch_rad),cy=Math.cos(a.yaw_rad),sy=Math.sin(a.yaw_rad);const x1=cr*p[0]-sr*p[1],y1=sr*p[0]+cr*p[1],z1=p[2],x2=x1,y2=cp*y1-sp*z1,z2=sp*y1+cp*z1;return [cy*x2+sy*z2,y2,-sy*x2+cy*z2];}
+function project(p){
+  // Orbit a perspective camera around the gimbal, keeping the scene centre fixed.
+  const center=[0,0,0.6], cp=Math.cos(view.pitch),sp=Math.sin(view.pitch),cy=Math.cos(view.yaw),sy=Math.sin(view.yaw);
+  const camera=[center[0]+view.distance*sy*cp,center[1]+view.distance*sp,center[2]-view.distance*cy*cp];
+  let fx=center[0]-camera[0],fy=center[1]-camera[1],fz=center[2]-camera[2],fl=Math.hypot(fx,fy,fz);fx/=fl;fy/=fl;fz/=fl;
+  let rx=fz,ry=0,rz=-fx,rl=Math.hypot(rx,ry,rz);rx/=rl;ry/=rl;rz/=rl;
+  const ux=fy*rz-fz*ry,uy=fz*rx-fx*rz,uz=fx*ry-fy*rx;
+  const dx=p[0]-camera[0],dy=p[1]-camera[1],dz=p[2]-camera[2];
+  const x=dx*rx+dy*ry+dz*rz,y=dx*ux+dy*uy+dz*uz,z=dx*fx+dy*fy+dz*fz;
+  if(z<=0.05)return [NaN,NaN,z];
+  return [canvas.width/2+x*190/z,canvas.height/2-y*190/z,z];
+}
+canvas.addEventListener('pointerdown',e=>{view.dragging=true;view.lastX=e.clientX;view.lastY=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';});
+canvas.addEventListener('pointermove',e=>{if(!view.dragging)return;view.yaw-=(e.clientX-view.lastX)*0.008;view.pitch=Math.max(-1.25,Math.min(1.25,view.pitch+(e.clientY-view.lastY)*0.008));view.lastX=e.clientX;view.lastY=e.clientY;draw();});
+function endDrag(){view.dragging=false;canvas.style.cursor='grab';}
+canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+canvas.addEventListener('wheel',e=>{e.preventDefault();view.distance=Math.max(2.2,Math.min(14,view.distance*Math.exp(e.deltaY*0.001)));draw();},{passive:false});
+canvas.addEventListener('dblclick',()=>{view.yaw=0;view.pitch=0.12;view.distance=5;draw();});
+function draw() {
+  if (!state) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#b9cbd8'; ctx.lineWidth=1;
+  for(let i=-3;i<=3;i++) { let a=project([i*.45,0,-2]),b=project([i*.45,0,3]);if(a[2]<=0.05||b[2]<=0.05)continue;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke(); }
+  const angles={roll_rad:state.roll_rad,pitch_rad:state.pitch_rad,yaw_rad:state.yaw_rad};
+  const v=[[-.45,-.35,-.45],[.45,-.35,-.45],[.45,.35,-.45],[-.45,.35,-.45],[-.45,-.35,.45],[.45,-.35,.45],[.45,.35,.45],[-.45,.35,.45]].map(p=>project(rotateBody(p,angles)));
+  const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  ctx.strokeStyle='#1769aa';ctx.lineWidth=4;for(const [a,b] of edges){if(v[a][2]<=0.05||v[b][2]<=0.05)continue;ctx.beginPath();ctx.moveTo(v[a][0],v[a][1]);ctx.lineTo(v[b][0],v[b][1]);ctx.stroke();}
+  const bodyOrigin=project([0,0,0]);
+  const axes=[
+    {p:[1.05,0,0],color:'#d62728',label:'X pitch'},
+    {p:[0,1.05,0],color:'#2ca02c',label:'Y yaw'},
+    {p:[0,0,1.05],color:'#1769aa',label:'Z roll / camera'},
+  ];
+  for(const axis of axes){const end=project(rotateBody(axis.p,angles));if(bodyOrigin[2]<=0.05||end[2]<=0.05)continue;ctx.strokeStyle=axis.color;ctx.fillStyle=axis.color;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(bodyOrigin[0],bodyOrigin[1]);ctx.lineTo(end[0],end[1]);ctx.stroke();ctx.beginPath();ctx.arc(end[0],end[1],3.5,0,Math.PI*2);ctx.fill();ctx.font='bold 12px system-ui';ctx.fillText(axis.label,end[0]+5,end[1]-4);}
+  const t=state.target_xyz_m, target=project([t.x,t.y,t.z]);
+  if(target[2]>0.05){const rad=Math.max(5,Math.min(32,state.target_scale_m*220/target[2]));ctx.fillStyle='#111';ctx.beginPath();ctx.arc(target[0],target[1],rad,0,Math.PI*2);ctx.fill();if(state.camera_roll_marker_enabled){ctx.fillStyle='#f2c14e';ctx.beginPath();ctx.arc(target[0]+rad*1.5,target[1],Math.max(2,rad*.22),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(target[0]-rad*1.5,target[1],Math.max(3,rad*.34),0,Math.PI*2);ctx.fill();}ctx.fillStyle='#223';ctx.font='16px system-ui';ctx.fillText(state.camera_roll_marker_enabled?'Oriented target':'Point target',target[0]+rad+5,target[1]);}
+  document.getElementById('rollMarker').checked=state.camera_roll_marker_enabled===true;
+  document.getElementById('readout').textContent=`time ${state.time_s.toFixed(2)} s | roll ${(state.roll_rad*180/Math.PI).toFixed(1)}° | pitch ${(state.pitch_rad*180/Math.PI).toFixed(1)}° | yaw ${(state.yaw_rad*180/Math.PI).toFixed(1)}° | target camera error X/Y ${(state.camera_truth_error_x_rad*180/Math.PI).toFixed(2)}° / ${(state.camera_truth_error_y_rad*180/Math.PI).toFixed(2)}° | wheel ${(state.wheel_speed_rad_s*60/(2*Math.PI)).toFixed(0)} rpm${state.wheel_saturated?' (speed limit)':''} | body torque yaw/pitch/roll ${state.actual_body_torque_nm.toFixed(4)} / ${state.simulated_pitch_body_torque_nm.toFixed(4)} / ${state.simulated_roll_body_torque_nm.toFixed(4)} N·m | disturbance ${state.torque_active?'ACTIVE':'off'}`;
+}
+async function refresh(){try{state=await(await fetch('/api/state')).json();draw();}catch(e){document.getElementById('readout').textContent='Simulation link unavailable';}}
+setInterval(refresh,100); refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+================================================================================
+CUBESAT ATTITUDE CONTROL PROJECT - CONTEXT MEMORY FILE
+================================================================================
+Course: Aviónica e Espaciónica (Code 43169 / UC 17073)
+Institution: University of Aveiro (DETI) - Master's in Aerospace Engineering
+Lecturer: Rodolfo Martins
+Semester: 2026/2027 (1st Year, 1st Semester)
+User Profile: Windows OS user, non-programmer background.
+
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW & GOALS
+--------------------------------------------------------------------------------
+System: CubeSat-style attitude determination and control demonstrator.
+Initial prototype: One free yaw/control axis; constrain the other two axes during
+                   early development if required by the bench setup.
+Later demonstrator: Use the 3-ring gimbal; yaw is reaction-wheel controlled,
+                    while roll and pitch are treated as pendular/damped modes
+                    unless the team defines a full 3-axis controller.
+Confirmed processing architecture: XIAO ESP32-S3 performs onboard camera capture
+                   and target processing, IMU/sensor processing, attitude
+                   estimation/control, and reaction-wheel commands. The PC
+                   ground station is supervisory: it displays/logs telemetry and
+                   sends configuration, mode, setpoint, and test commands. It is
+                   not in the autonomous feedback loop.
+Sensor fusion: Camera gives slower target-relative visual information; MPU-6050
+               gyro/accelerometer gives faster motion measurements. The
+               magnetometer is in the component notes, but its role is undecided.
+Target: Black high-contrast point on a poster, used as a visual pointing target.
+Final Target Performance:
+  - Acquire target (<6s from 30° off-center).
+  - Station-keeping (stay within ±2° for 60 seconds).
+  - Disturbance rejection (recover from ~20° nudge in <4s).
+  - Track moving poster & handle 2-second camera occlusion without instability.
+
+--------------------------------------------------------------------------------
+2. COURSE EVALUATION & RULES
+--------------------------------------------------------------------------------
+AI Policy: Free and encouraged for E1, E2, and weekly exercises (must log usage
+           and verify primary sources). STRICTLY FORBIDDEN in E4 (written test).
+Assessment:
+  - E1 (20%): Topic Presentation with peer assessment (Sessions 5-12).
+  - E2 (20%): Group Report (Due 07/12/2026).
+  - E3 (20%): Individual Oral Presentation/Discussion (Sessions 13-14).
+  - E4 (40%): Written Exam (Jan 2027) - MINIMUM GRADE 7.0/20 REQUIRED.
+
+--------------------------------------------------------------------------------
+3. THE 7-LEVEL IMPLEMENTATION ROADMAP
+--------------------------------------------------------------------------------
+[SIMULATION PHASE - Levels 0 to 3]
+- Level 0 (Startup): Environment setup, build base project, establish TMTC 
+  telemetry link to Python Ground Station.
+- Level 1 (Make it spin): Control motor speed to setpoint (3000 RPM in <0.5s, 
+  error <2%).
+- Level 2 (Know where I am): Read IMU data, estimate orientation (error <2°, 
+  drift <2°/min).
+- Level 3 (Turn and stop): Closed-loop position/attitude control (45° step, 
+  settle within ±1°).
+
+[HARDWARE PHASE - Levels 4 to 6]
+- Level 4 (See the point): Onboard ESP32 camera processing and target-error
+  estimation (hit rate >98%, ≥15 FPS; criteria to confirm).
+- Level 5 (Point on its own): Onboard visual error and sensor estimates drive
+  the reaction-wheel control loop; the ground station only monitors.
+- Level 6 (Handle the real world): Pass all 5 live physical disturbance tests.
+
+--------------------------------------------------------------------------------
+4. HARDWARE & SOFTWARE TOOLCHAIN
+--------------------------------------------------------------------------------
+Hardware Components:
+  - Microcontroller: Seeed Studio XIAO ESP32-S3 Sense
+  - Camera: OV5640 / OV3660 (320x240 resolution)
+  - IMU: MPU-6050 (3-axis gyro + 3-axis accel via I2C on Pins D4/D5)
+  - Magnetometer: LIS3MDL (3-axis via I2C)
+  - Motor & Driver: Brushless 5208 Kv330 with moteus r4.11 controller (via CAN-FD)
+  - Power: 6S Li-Po battery (22.2V 1400mAh)
+
+Software Stack (current workspace is WSL Ubuntu on a Windows host):
+  - Python: Ground station GUI (PyQt5, pyqtgraph); simulator/analysis may use
+    OpenCV and NumPy, but final camera perception/control is onboard ESP32.
+  - MSYS2 (MINGW64): GCC/Make toolchain for local C/C++ compilation.
+  - VS Code: ESP-IDF extension for compiling target ESP32-S3 firmware.
+  - Git: Version control repository for code & telemetry definitions.
+
+--------------------------------------------------------------------------------
+5. KEY COURSE BIBLIOGRAPHY & REFERENCES
+--------------------------------------------------------------------------------
+Primary Core Texts:
+  - Collinson, R. P. G. (2023). Introduction to Avionics Systems (4th ed.). Springer.
+  - Tooley, M., & Wyatt, D. (2017). Aircraft Communications and Navigation Systems (2nd ed.).
+  - Storey, N. (2017). Electronics: A Systems Approach (6th ed.). Pearson. (Module C1)
+  - Helfrick, A. (2013). Principles of Avionics (8th ed.). Avionics Communications.
+  - Kumar, K. D. (2014). Fundamental of Avionics Systems. CreateSpace.
+  - Chidebell, C. C. (2023). Fundamentals of Modern Avionics Engineering (Part I).
+
+Module-Specific Standards & References:
+  - C2 (Radar): Skolnik, M. I. (2008). Radar Handbook (3rd ed.).
+  - C3 (Navigation): Kaplan, E. D., & Hegarty, C. J. (2017). Understanding GPS/GNSS (3rd ed.).
+  - C4 (Comms/Telemetry): Balanis, C. A. (2016). Antenna Theory (4th ed.).
+  - Protocol Standards: ARINC 429, SpaceWire (ECSS-E-ST-50-12C), CCSDS 133.0-B.
+
+--------------------------------------------------------------------------------
+6. REQUIRED DELIVERABLES FOR REPORT (E2)
+--------------------------------------------------------------------------------
+  1. TMTC ICD (Telemetry & Telecommand Interface Control Document)
+  2. Design Description Architecture Document
+  3. Ground Station Software (Python)
+  4. CubeSat Onboard Firmware (ESP-IDF C/C++)
+================================================================================

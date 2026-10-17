@@ -1,0 +1,63 @@
+AE CUBESAT ATTITUDE-CONTROL PROJECT — WORKING NOTES
+
+CONFIRMED ARCHITECTURE DECISION
+- The CubeSat's XIAO ESP32-S3 is the onboard computer for the autonomous system.
+- Camera capture and image processing, sensor processing/fusion, attitude-control
+  decisions, and reaction-wheel commands run onboard.
+- The ground station is not in the autonomous feedback loop. It receives and
+  records telemetry, displays housekeeping and payload data, and can send
+  configuration, mode, or test commands. Autonomous pointing must continue
+  without real-time ground-station commands.
+- Treat ESP32-S3 compute capacity as the selected design assumption; measure
+  frame rate, timing, memory, and control performance on the target hardware.
+
+SYSTEM OVERVIEW
+
+1. Sensing and perception (onboard)
+   - Camera: Seeed XIAO ESP32-S3 Sense camera (OV5640/OV3660 variant to confirm).
+   - Detect the black, high-contrast target on the poster.
+   - Calculate target displacement in the camera image. Define the pixel-to-angle
+     conversion and image coordinate convention; do not claim 3D position from a
+     monocular image unless a depth method is added.
+   - IMU: MPU-6050, 3-axis gyroscope and accelerometer.
+   - LIS3MDL magnetometer is listed in the notes; its role in the first version
+     remains to be decided.
+   - Fuse camera's slower absolute target observation with the IMU's fast motion
+     measurements as required by the controller design.
+
+2. Attitude control and actuation (onboard)
+   - Initially develop/control one free yaw axis; the other axes may be locked
+     for the first simulator or bench phase if agreed with the project team.
+   - Later use the project gimbal configuration: yaw is reaction-wheel
+     controlled; roll and pitch are pendular/damped modes, unless the team adopts
+     a full three-axis control design.
+   - Motor: brushless reaction-wheel motor with moteus r4.11 controller over
+     CAN-FD (exact supplied hardware to confirm).
+   - The ESP32 runs the control law and sends motor commands; the wheel's angular
+     momentum change rotates the cube in the opposite direction.
+
+3. Telemetry and telecommand (CubeSat ↔ ground station)
+   - Ground station PC: display and log housekeeping, IMU, target-error,
+     controller/motor status, and selected payload data. Send setup, mode,
+     setpoint, and test commands.
+   - During autonomous target acquisition/holding/tracking, image processing and
+     control decisions stay onboard. The ground station may monitor but must not
+     be required to close the loop.
+   - Link and packet protocol are not finalized. Wi-Fi and a simplified
+     CCSDS-inspired packet format are candidate ideas, not a selected standard.
+   - The current local simulator uses UDP loopback and JSON only; it is not yet
+     the CubeSat radio or final TM/TC protocol.
+
+DEVELOPMENT SEQUENCE
+- Begin in simulation: telemetry link, motor/speed control, IMU estimation, and
+  attitude control.
+- Add target detection and camera/IMU control onboard.
+- Validate through simulation, processor-in-the-loop, and hardware-in-the-loop
+  as the equipment becomes available.
+- Final demonstration: acquire the poster target, hold within the project
+  tolerance, recover from a nudge, follow a moving target, and tolerate a brief
+  camera occlusion.
+
+Open details: camera variant, magnetometer use, initial axis constraints,
+communication link/protocol, and final values/test criteria must be confirmed
+against the supplied kit and the team/lecturer.

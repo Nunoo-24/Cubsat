@@ -1,0 +1,77 @@
+So, this is the structure and things that we want to do.
+
+Enviroment
+>Cubsat
+	> Camera sistem
+		> hardware : OV5640 Camera for XIAO ESP32-S3 Sense Eval BD
+		> inputs : visual from enviroment
+		> Procecing : image to binary matrix to locate black point
+		> output : Direction error (Black point must be in the center) for contror | image and direction error for ground station
+	> Sensor sistem
+		> hardware : IMU 3Axis Gyro, 3 Axis Accel, 5.5V MPU-6050 | U SENS 3 Axial Magnetometer ± 4/8/12/16 Gs SPI I2C Breakout 
+		> inputs : Sensor [x,y,z] position from enviroment
+		> Procecing : [x,y,z] as readable data to stabalise direction (just remain still whout carring where it is facing)
+		> output : Stabilisation orders for control | [x,y,z] for ground station
+	> Controll sinstem
+		> hardware : Seeed Studio XIAO ESP32-S3 Sense
+		> inputs : orders form visualisation and sensorisation sistems
+		> Procecing : orders in to actual readable and acurate data dor motors
+		> output : Motor orders for actuation sistem | house keeping and motor orders for Telemetry
+	> Actuation sistem
+		> hardware : Motor Brushless Controller Moteus r4.11 STM32 44V 12A CAN-FD
+		> inputs : Motor orders from control
+		> Procecing : ---
+		> output : motor actuation (fisical output)
+	> Telematry
+		> hardware : Seeed Studio XIAO ESP32-S3 Sense -> WI-fi (resersh protocole)
+		> inputs : all provided data
+		> Procecing : Local data in to data that can be sent via wifi to the ground station
+		> output : DATA for the ground station
+
+
+>ground station
+	> hardware : Local PC
+	> inputs : all provided data from WI-FI telemetry
+	> Decoding : Recived data in to readable and usable data 
+	> output : UI
+		> grafs of derection in time
+		> Camera image with direction error
+		> house keping information
+
+---
+
+but as you know we would like to simulate the hole project before integrating in the cube sate so this isi my idea
+
+instead of having a strait door in the cubsat code to input fake data for the sensors and camera, i whant to simulate the enviroment. 
+
+i dont know if this is possible, but it Ould be great if we also had a "Sim_Enviroment" code runing no local pc were we can see a simple 3d representation of the cube and the black point and we could silulate the data in this UI, 
+
+Sim_Enviroment UI
+> simple 3d representation of the cube and the black point
+> torc input (f Newton metor in a [x,y,z] direction for t time)
+> black point manipulation - [x,y,z] coordeante and s scale so we cane move it and change its size
+
+----
+
+see all of this and folow the work flow:
+
+- Explore sim_python, since it can help you understand how and where to build a code that runs in an emulated esp 32, sincethat is what i want.
+- create folders in out put and where you see fit for all sistems and sub sistems with the structure pruvideded above.
+- resersh how evry sistem, subsistem, hardware and interactions betwin them work 
+- create a file that explains how evry sistem, subsistem, hardware and interactions betwin them work 
+- build the sistems -> all the code and interactions, folowing the corect languages and protocoles previous defined
+- integrate evry thing
+- polish the 3 base codes (Sim_Enviroment, Ground_Station, Cubsat_ESP32) and be sure that they run independently and comunicate corectly using realistic protocols and pocedjures
+- put on the base readme file the comands to rund the individual
+- check the resoults with the sources and inputs and all your context and reference and evaluate them (dont forget to update context files and readme's to ensure progress)
+- iterate until you think you got evry thing rigth
+
+CAn you do it?
+
+
+
+
+
+
+
+

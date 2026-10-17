@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "author": "AE CubeSat project",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-xiao-esp32-s3",
+      "id": "cubesat_mcu",
+      "top": 0,
+      "left": 0,
+      "attrs": { "flashSize": "8", "psramSize": "8", "psramType": "octal" }
+    }
+  ],
+  "connections": [],
+  "dependencies": {}
+}

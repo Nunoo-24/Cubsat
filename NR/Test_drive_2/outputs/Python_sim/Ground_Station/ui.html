@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CubeSat Ground Station</title>
+  <style>
+    :root{font:15px system-ui,sans-serif;color:#1b2730;background:#edf2f6}body{max-width:1100px;margin:auto;padding:22px}
+    h1{font-size:1.55rem;margin:0}.muted{color:#5d6b76;margin:4px 0 16px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    section,.card{background:white;border:1px solid #d7e0e7;border-radius:9px;padding:14px}.card span{display:block;color:#52616d;font-size:.85rem}.card strong{font-size:1.25rem}
+    .layout{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:12px}canvas{width:100%;display:block;background:#f8fbfd;border-radius:5px}
+    #camera{height:190px}#plot{height:220px}.previewWrap{position:relative;width:320px;height:240px}.previewWrap img,.previewWrap canvas{position:absolute;inset:0;width:320px;height:240px}.previewWrap img{image-rendering:pixelated;background:#111}.previewWrap canvas{pointer-events:none}.ok{color:#137333}.bad{color:#b00020}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    select,button{padding:8px;border:1px solid #aebcc7;border-radius:5px;background:white}button{cursor:pointer;background:#1769aa;color:white;border:0}
+    @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <h1>CubeSat Ground Station</h1><p class="muted">Telemetry monitor and supervisory commands · autonomous control runs onboard</p>
+  <div class="grid">
+    <div class="card"><span>Telemetry link</span><strong id="link" class="bad">NO DATA</strong></div>
+    <div class="card"><span>Mode / health</span><strong id="mode">—</strong></div>
+    <div class="card"><span>Camera target error X/Y</span><strong id="error">—</strong></div>
+    <div class="card"><span>Yaw rate</span><strong id="rate">—</strong></div>
+  </div>
+  <div class="layout">
+    <section>
+      <h2>Target observation</h2>
+      <canvas id="camera" width="640" height="220"></canvas>
+      <p class="muted">Telemetry view · Camera frame: <strong id="previewStatus">not available</strong></p>
+      <div id="previewPanel" class="previewWrap" hidden>
+        <img id="physicalPreview" alt="Recent grayscale camera preview or SIL-rendered target frame">
+        <canvas id="previewOverlay" width="320" height="240" aria-label="Target centre and measured X and Y error overlay"></canvas>
+      </div>
+      <p>Camera error X/Y: <strong id="cameraError">—</strong> · IMU: <strong id="imuHealth">—</strong> <span class="muted">(freshness limit 100 ms)</span></p>
+      <p>Gyro XYZ (rad/s): <strong id="gyroXYZ">—</strong><br>
+        Acceleration XYZ (m/s²): <strong id="accelXYZ">—</strong><br>
+        Estimated yaw: <strong id="yawEstimate">—</strong> · <span id="yawEstimateSource">invalid</span><br>
+        Accelerometer tilt estimate pitch/roll: <strong id="tiltEstimate">—</strong><br>
+        Magnetometer XYZ (µT): <strong id="magXYZ">—</strong> · <span id="magHealth">—</span></p>
+      <p>Sim time: <strong id="simTime">—</strong> · Requested body torque yaw/pitch/roll: <strong id="torque">—</strong><br>
+        Simulated applied torque yaw/pitch/roll: <strong id="simTorque">—</strong> · Simulated wheel: <strong id="wheelState">—</strong><br>
+        Physical moteus: <strong id="moteusState">disabled</strong> · motor torque: <strong id="moteusTorque">—</strong> · wheel speed: <strong id="moteusSpeed">—</strong></p>
+      <p>Fault: <strong id="fault">—</strong></p>
+      <div aria-label="Simulator truth comparison" style="margin-top:12px;background:#f5f8fa;border:1px solid #d7e0e7;border-radius:9px;padding:14px">
+        <h2>Simulation truth (debug comparison)</h2>
+        <p class="muted">Read directly from the simulated plant. CubeSat telemetry above comes from camera and sensor measurements, so values can differ.</p>
+        <p>Plant yaw / roll / pitch: <strong id="truthAttitude">—</strong><br>
+          Plant camera-plane error X/Y: <strong id="truthTargetError">—</strong><br>
+          Target XYZ: <strong id="truthTargetPosition">—</strong></p>
+      </div>
+    </section>
+    <section><h2>Operator commands</h2><div class="controls"><button onclick="sendCommand('PING')">Request heartbeat</button><select id="modeSelect"><option>SAFE</option><option>STANDBY</option><option>RATE_DAMP</option><option>ACQUIRE</option><option selected>TRACK</option></select><button onclick="sendCommand('SET_MODE')">Set mode</button></div><p>Commissioning speed test: <label>rpm <input id="speedRpm" type="number" min="0" max="3000" step="50" value="3000"></label> <label>duration (s) <input id="speedDuration" type="number" min="0.5" max="5" step="0.5" value="2"></label> <button onclick="sendCommand('SET_WHEEL_SPEED')">Run speed test</button></p><p id="speedTestTelemetry">Speed test: idle</p><p>Relative yaw step: <label>degrees <input id="yawStepDegrees" type="number" min="-180" max="180" step="1" value="45"></label> <button onclick="sendCommand('SET_YAW_STEP')">Run yaw step</button></p><p id="yawStepTelemetry">Yaw step: idle</p><p id="commandStatus" class="muted">Test commands require SAFE or STANDBY. Speed tests request zero speed at the end; the physical arm input remains independent.</p><p>Last acknowledgement: <strong id="ack">—</strong></p><p><a href="/telemetry.csv">Download telemetry CSV</a></p></section>
+    <section style="grid-column:1/-1"><h2>Target error history</h2><canvas id="plot" width="980" height="220"></canvas></section>
+  </div>
+<script>
+const history=[],maxPoints=300;let telemetrySeenAt=0,lastPreviewError=null,pendingCommandId=null;
+const deg=x=>(x*180/Math.PI).toFixed(2)+'°';
+async function sendCommand(command){const payload={command};if(command==='SET_MODE')payload.mode=document.getElementById('modeSelect').value;if(command==='SET_WHEEL_SPEED'){payload.speed_rpm=Number(document.getElementById('speedRpm').value);payload.duration_s=Number(document.getElementById('speedDuration').value);}if(command==='SET_YAW_STEP')payload.delta_deg=Number(document.getElementById('yawStepDegrees').value);try{const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok){document.getElementById('commandStatus').textContent=j.error||'Command rejected';return;}pendingCommandId=j.command_id??null;document.getElementById('commandStatus').textContent=`Bridge accepted ${command} (#${pendingCommandId??'?' }); awaiting CubeSat acknowledgement in telemetry.`;}catch(e){document.getElementById('commandStatus').textContent='Command link unavailable';}}
+function drawCamera(t){const c=document.getElementById('camera'),g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.strokeStyle='#9aabb7';g.beginPath();g.moveTo(c.width/2,0);g.lineTo(c.width/2,c.height);g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke();g.fillStyle='#202a30';if(t.target_valid&&Number.isFinite(t.camera_error_x_px)&&Number.isFinite(t.camera_error_y_px)){const x=c.width/2+t.camera_error_x_px*c.width/320,y=c.height/2+t.camera_error_y_px*c.height/240;g.beginPath();g.arc(x,y,9,0,Math.PI*2);g.fill();g.fillText('detected target',x+14,y-12);}else{g.fillStyle='#a33';g.fillText('target unavailable / outside field of view',c.width/2-110,c.height/2-12);}}
+function drawPreviewOverlay(){const c=document.getElementById('previewOverlay'),g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.strokeStyle='#00e5ff';g.lineWidth=1;g.beginPath();g.moveTo(c.width/2,0);g.lineTo(c.width/2,c.height);g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke();if(lastPreviewError?.valid&&Number.isFinite(lastPreviewError.errorX)&&Number.isFinite(lastPreviewError.errorY)){const x=c.width/2+lastPreviewError.errorX*c.width/320,y=c.height/2+lastPreviewError.errorY*c.height/240;g.strokeStyle='#ff3d00';g.lineWidth=2;g.beginPath();g.arc(x,y,5,0,Math.PI*2);g.stroke();}}
+async function refreshPreview(){const pane=document.getElementById('previewPanel'),img=document.getElementById('physicalPreview'),status=document.getElementById('previewStatus');try{const r=await fetch('/api/camera-preview.bmp',{cache:'no-store'});if(!r.ok)throw Error('stale');const valid=r.headers.get('X-Camera-Target-Valid')==='true',rawX=r.headers.get('X-Camera-Error-X-Px'),rawY=r.headers.get('X-Camera-Error-Y-Px'),source=r.headers.get('X-Camera-Preview-Source')||'physical';lastPreviewError={valid,errorX:rawX===null?NaN:Number(rawX),errorY:rawY===null?NaN:Number(rawY)};const blob=await r.blob();if(img.src)URL.revokeObjectURL(img.src);img.src=URL.createObjectURL(blob);pane.hidden=false;status.textContent=`${source} 64×48 grayscale; frame-matched X/Y error overlay`;drawPreviewOverlay();}catch(e){pane.hidden=true;status.textContent='not available';lastPreviewError=null;}}
+function drawPlot(){const c=document.getElementById('plot'),g=c.getContext('2d'),w=c.width,h=c.height,left=48,right=w-12,top=24,bottom=h-34;g.clearRect(0,0,w,h);g.strokeStyle='#c8d2d9';g.beginPath();g.moveTo(left,top);g.lineTo(left,bottom);g.lineTo(right,bottom);g.stroke();g.fillStyle='#425466';g.fillText('target error (degrees)',left,16);g.fillText('simulation time (s)',right-115,h-8);if(history.length<2)return;const times=history.map(s=>s.time_s),start=times[0],span=Math.max(0.001,times[times.length-1]-start),max=Math.max(5,...history.filter(s=>s.error_rad!==null).map(s=>Math.abs(s.error_rad*180/Math.PI)));const y0=top+(bottom-top)/2;g.strokeStyle='#c66';g.beginPath();g.moveTo(left,y0);g.lineTo(right,y0);g.stroke();g.strokeStyle='#1769aa';g.lineWidth=2;let drawing=false;for(const sample of history){if(sample.error_rad===null){drawing=false;continue;}const x=left+(sample.time_s-start)/span*(right-left),v=sample.error_rad*180/Math.PI,y=y0-v/max*(bottom-top)*0.46;if(!drawing){g.beginPath();g.moveTo(x,y);drawing=true;}else g.lineTo(x,y);}g.stroke();g.fillStyle='#52616d';g.fillText(start.toFixed(1),left,bottom+14);g.fillText(times[times.length-1].toFixed(1),right-28,bottom+14);}
+async function refresh() {
+  try {
+    const response = await fetch('/api/telemetry');
+    if (!response.ok) throw Error('no packet');
+    const t = await response.json();
+    telemetrySeenAt = Date.now();
+    drawPreviewOverlay();
+
+    const link = document.getElementById('link');
+    link.textContent = 'CONNECTED';
+    link.className = 'ok';
+    document.getElementById('mode').textContent = `${t.mode} / ${t.system_state}`;
+    const cameraAgeValid = typeof t.camera_age_s === 'number' && Number.isFinite(t.camera_age_s) && t.camera_age_s >= 0;
+    const imuAgeValid = typeof t.imu_age_s === 'number' && Number.isFinite(t.imu_age_s) && t.imu_age_s >= 0;
+    const cameraFresh = cameraAgeValid && t.camera_age_s <= 0.1;
+    const imuFresh = t.imu_valid === true && imuAgeValid && t.imu_age_s <= 0.1;
+    const targetFresh = t.target_valid === true && cameraFresh;
+    document.getElementById('error').textContent = !t.target_valid ? 'INVALID' : cameraFresh ? `X ${deg(t.target_error_rad)} / Y ${Number.isFinite(t.camera_error_y_rad) ? deg(t.camera_error_y_rad) : '—'}` : 'STALE';
+    document.getElementById('rate').textContent = deg(t.yaw_rate_rad_s ?? t.gyro_y_rad_s) + '/s';
+    document.getElementById('cameraError').textContent = !t.target_valid ? 'invalid'
+      : !cameraAgeValid ? 'age unavailable'
+      : !cameraFresh ? `STALE (${(t.camera_age_s * 1000).toFixed(0)} ms)`
+      : `X ${Number(t.camera_error_x_px).toFixed(1)} px, Y ${Number(t.camera_error_y_px).toFixed(1)} px`;
+    document.getElementById('imuHealth').textContent = t.imu_valid === false ? 'FAULT'
+      : !imuAgeValid ? 'age unavailable'
+      : !imuFresh ? `STALE (${(t.imu_age_s * 1000).toFixed(0)} ms)`
+      : `FRESH (${(t.imu_age_s * 1000).toFixed(0)} ms)`;
+    document.getElementById('gyroXYZ').textContent =
+      [t.gyro_x_rad_s, t.gyro_y_rad_s, t.gyro_z_rad_s].map(v => Number(v).toFixed(3)).join(', ');
+    document.getElementById('accelXYZ').textContent =
+      [t.accel_x_m_s2, t.accel_y_m_s2, t.accel_z_m_s2].map(v => Number(v).toFixed(2)).join(', ');
+    document.getElementById('yawEstimate').textContent = t.yaw_estimate_valid === true
+      ? deg(t.yaw_estimate_rad) : '—';
+    document.getElementById('yawEstimateSource').textContent = t.yaw_estimate_source || 'invalid';
+    document.getElementById('tiltEstimate').textContent = Number.isFinite(t.pitch_estimate_rad) && Number.isFinite(t.roll_estimate_rad)
+      ? `${deg(t.pitch_estimate_rad)} / ${deg(t.roll_estimate_rad)}` : 'invalid';
+    document.getElementById('yawStepTelemetry').textContent =
+      `Yaw step: ${t.yaw_step_status || 'idle'} · target ${Number.isFinite(t.yaw_step_target_rad) ? deg(t.yaw_step_target_rad) : '—'} · error ${Number.isFinite(t.yaw_step_error_rad) ? deg(t.yaw_step_error_rad) : '—'}`;
+    document.getElementById('magHealth').textContent = t.mag_valid === true
+      ? `${t.mag_frame || 'frame unknown'} · telemetry only` : 'not available';
+    document.getElementById('magXYZ').textContent = t.mag_valid === true
+      ? [t.mag_x_uT, t.mag_y_uT, t.mag_z_uT].map(v => Number(v).toFixed(1)).join(', ') : '—';
+    document.getElementById('simTime').textContent = Number(t.simulation_time_s).toFixed(2) + ' s';
+    document.getElementById('torque').textContent = [t.body_torque_nm,t.pitch_body_torque_nm,t.roll_body_torque_nm].map(v=>Number.isFinite(v)?Number(v).toFixed(4):'—').join(' / ')+' N·m';
+    document.getElementById('simTorque').textContent = [t.simulated_body_torque_nm,t.simulated_pitch_body_torque_nm,t.simulated_roll_body_torque_nm].map(v=>Number.isFinite(v)?Number(v).toFixed(4):'—').join(' / ')+' N·m';
+    document.getElementById('wheelState').textContent = Number.isFinite(t.simulated_wheel_speed_rad_s)
+      ? `${(t.simulated_wheel_speed_rad_s * 60 / (2 * Math.PI)).toFixed(0)} rpm${t.simulated_wheel_saturated ? ' (speed limit)' : ''}`
+      : 'not available';
+
+    const moteusState = t.moteus_enabled
+      ? (t.moteus_arm_active
+        ? (t.moteus_link_valid ? `online · mode ${t.moteus_mode} · fault ${t.moteus_fault}` : 'armed · no valid reply')
+        : 'disarmed · arm input low')
+      : 'disabled';
+    document.getElementById('moteusState').textContent = moteusState;
+    document.getElementById('moteusTorque').textContent = Number.isFinite(t.moteus_motor_torque_nm)
+      ? `${Number(t.moteus_motor_torque_nm).toFixed(4)} N·m measured / ${Number(t.moteus_commanded_motor_torque_nm).toFixed(4)} N·m commanded`
+      : '—';
+    document.getElementById('moteusSpeed').textContent = Number.isFinite(t.moteus_velocity_rev_s)
+      ? `${(Number(t.moteus_velocity_rev_s) * 60).toFixed(1)} rpm` : '—';
+    const measuredSpeed = Number(t.motor_speed_measured_rev_s);
+    const targetSpeed = Number(t.motor_speed_target_rev_s);
+    document.getElementById('speedTestTelemetry').textContent =
+      `Speed test: ${t.motor_speed_test_status || 'idle'} · measured ${Number.isFinite(measuredSpeed) ? (measuredSpeed*60).toFixed(1)+' rpm' : '—'} · target ${Number.isFinite(targetSpeed) ? (targetSpeed*60).toFixed(1)+' rpm' : '—'} · error ${Number.isFinite(t.motor_speed_error_percent) ? Number(t.motor_speed_error_percent).toFixed(2)+'%' : '—'}`;
+    document.getElementById('fault').textContent = t.fault || 'None';
+    document.getElementById('ack').textContent = t.command_ack
+      ? `${t.command_ack.status} #${t.command_ack.command_id} ${t.command_ack.reason || ''}` : '—';
+    if (pendingCommandId !== null && t.command_ack?.command_id === pendingCommandId) {
+      document.getElementById('commandStatus').textContent = `CubeSat ${t.command_ack.status.toLowerCase()} command #${pendingCommandId}${t.command_ack.reason ? `: ${t.command_ack.reason}` : ''}`;
+      pendingCommandId = null;
+    }
+
+    const sequence = t.ground_sequence ?? t.sequence;
+    if (history.length === 0 || sequence !== window.lastSeq) {
+      if (history.length >= maxPoints) history.shift();
+      history.push({time_s:Number(t.simulation_time_s),error_rad:targetFresh&&imuFresh&&Number.isFinite(t.target_error_rad)?t.target_error_rad:null});
+      window.lastSeq = sequence;
+    }
+    drawCamera({...t, target_valid: targetFresh && imuFresh});
+    drawPlot();
+  } catch (_error) {
+    if (Date.now() - telemetrySeenAt > 1500) {
+      const link = document.getElementById('link');
+      link.textContent = 'NO DATA';
+      link.className = 'bad';
+    }
+  }
+}
+setInterval(refresh,200);setInterval(refreshPreview,1000);refresh();refreshPreview();
+async function refreshTruth(){
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('state unavailable');const s=await r.json();
+    const degValue=x=>(Number(x)*180/Math.PI).toFixed(2)+'°';
+    document.getElementById('truthAttitude').textContent=`yaw ${degValue(s.yaw_rad)} · roll ${degValue(s.roll_rad)} · pitch ${degValue(s.pitch_rad)}`;
+    document.getElementById('truthTargetError').textContent=`X ${degValue(s.camera_truth_error_x_rad)} / Y ${degValue(s.camera_truth_error_y_rad)}`;
+    const t=s.target_xyz_m;document.getElementById('truthTargetPosition').textContent=`(${Number(t.x).toFixed(2)}, ${Number(t.y).toFixed(2)}, ${Number(t.z).toFixed(2)}) m`;
+  }catch(_e){document.getElementById('truthAttitude').textContent='unavailable';document.getElementById('truthTargetError').textContent='—';document.getElementById('truthTargetPosition').textContent='—';}
+}
+setInterval(refreshTruth,500);refreshTruth();
+</script>
+</body>
+</html>

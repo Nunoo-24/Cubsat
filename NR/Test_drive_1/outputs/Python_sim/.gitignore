@@ -1,0 +1,23 @@
+﻿# Python virtual environment and generated Python files
+.venv/
+__pycache__/
+*.py[cod]
+
+# ESP-IDF generated build output and local configuration
+CubeSat_ESP32/firmware/build/
+CubeSat_ESP32/firmware/sdkconfig
+CubeSat_ESP32/firmware/sdkconfig.old
+CubeSat_ESP32/firmware/managed_components/
+# Discarded build cache left at the pre-migration directory (do not reuse).
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+
+# Editor and operating-system files
+.vscode/
+.vs/
+Thumbs.db
+.DS_Store
+.venv-wsl/
+Ground_Station/logs/

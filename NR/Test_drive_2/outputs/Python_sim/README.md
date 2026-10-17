@@ -13,6 +13,11 @@ source files, outputs, and context handoff.
 
 ## Components
 
+The full project view is in the editable
+[`../Diagrams/AE_CubeSat_System_Architecture.drawio`](../Diagrams/AE_CubeSat_System_Architecture.drawio)
+system architecture diagram; its scope and legend are documented in that
+folder.
+
 - [`Sim_Environment/`](Sim_Environment/README.md) — local browser scene and
   three-axis plant with yaw-wheel control, host-SIL/ESP32 simulator virtual
   pitch/roll torque, and an optional asymmetric camera-roll marker. Start with

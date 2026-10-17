@@ -42,6 +42,24 @@ a native ESP-IDF build, portable C tests, and Wokwi bridge run when those
 toolchains/runtime are available. Physical component revisions and axis scope
 still require confirmation.
 
+### Test Drive 2 package refresh and GitHub publication attempt (17 October 2026)
+
+Rebuilt `outputs/Python_sim/NR/Test_drive_2/` from the active AE project tree,
+including current Context, Source, inputs, outputs, reports, and references.
+Removed nested Git data, generated Python caches, build/log directories, and
+machine-specific editor settings. Refreshed the snapshot readme/state and the
+`NR/README.md` index; left Test Drive 1 unchanged. The snapshot is 137 files,
+about 2.3 MiB. Its own `run_verification.sh` run passed 218/218 Python tests in
+116.493 s, syntax compilation, and all six report generators. Portable C and
+ESP-IDF steps skipped because their toolchains are unavailable.
+
+Committed only `NR/Test_drive_2/` and `NR/README.md` as
+`8551a6c` (`Refresh Test Drive 2 snapshot`). `git push origin main` failed
+before authentication because this environment could not resolve `github.com`.
+The commit is local only; GitHub has not been updated. The pre-existing staged
+active-project changes in the nested Python_sim worktree were excluded from
+this commit and remain staged locally.
+
 The portable C detector estimates the same marker angle. ESP32 firmware now
 includes a bounded pitch/roll controller and sends virtual torque to the scene
 only when it is using a simulator-sourced frame. Physical motor actuation is
@@ -1784,3 +1802,18 @@ and cached `origin/main` both point to that commit. A new push/reachability
 check from this session failed because `github.com` did not resolve; the
 current live remote state could not be re-fetched. Many later live-worktree
 changes are uncommitted and are not included in that snapshot commit.
+
+### 2D system architecture diagram (17 October 2026)
+
+Created `outputs/Diagrams/AE_CubeSat_System_Architecture.drawio` and its SVG
+preview. The editable diagram has Environment/Test Plant, CubeSat onboard, and
+Ground Station domain boxes, with labeled cross-domain flows and internal
+camera detection, sensor conditioning/estimation, control, actuation, and
+telemetry processes. It distinguishes the physical yaw-only moteus path from
+simulation-only virtual pitch/roll control and marks unresolved hardware and
+protocol details. Updated the AE and software READMEs and design description.
+Validated both diagram files as well-formed XML. The draw.io desktop GUI is
+installed on Windows, but this WSL session cannot directly control it; open the
+editable file from the Windows app to review visual layout. The same diagram
+and updated documentation are included in the local Test Drive 2 snapshot;
+that addition is not yet on GitHub because the prior push attempt failed on DNS.

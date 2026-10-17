@@ -13,6 +13,9 @@ Follow `../README.md` and read `Context/HANDOFF.md` before continuing work.
 ## Current deliverables
 
 - `outputs/Design_Description.md` — initial system architecture and design draft.
+- `outputs/Diagrams/AE_CubeSat_System_Architecture.drawio` — editable,
+  domain-boundary system diagram with software/hardware processes and labeled
+  cross-domain flows; an SVG preview and scope notes are alongside it.
 - `outputs/Subsystems/` — per-subsystem purpose, interfaces, implementation links, limits, and next verification actions.
 - `outputs/Python_sim/docs/TMTC-ICD.md` — Level 0 loopback protocol definition, with requirements for later onboard interface revisions.
 - `outputs/Python_sim/docs/System_Architecture_and_Interfaces.md` — subsystem roles, signal chain, model assumptions, camera adapter, and emulation research.

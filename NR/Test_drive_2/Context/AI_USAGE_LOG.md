@@ -26,6 +26,21 @@ and axis-control reports. A new report,
 `outputs/reports/AE_Project_Current_State_Report_2026-10-17.md`, records the
 current state, test evidence, unresolved gates, and context-reading limits.
 
+## 2026-10-17 — Refresh Test Drive 2 package
+
+Replaced the contents of `outputs/Python_sim/NR/Test_drive_2/` with a clean
+copy of the active AE project's Context, Source, inputs, outputs, and
+references. Excluded nested Git data, caches, build products, logs, and
+machine-specific IDE settings. Updated the Test Drive 2 README/state and
+`NR/README.md`; left Test Drive 1 unchanged. The packaged copy passed 218 Python
+tests in 116.493 seconds, Python syntax compilation, and all six report
+generators. C host and ESP-IDF steps skipped because the toolchains are absent.
+
+Committed only the snapshot and index as `8551a6c` (`Refresh Test Drive 2
+snapshot`). The push failed because DNS resolution for `github.com` is
+unavailable in this execution environment; the commit is local and the remote
+was not updated. Existing staged active-project changes were not included.
+
 | Date | Work assisted | AI contribution | Verification / author action |
 |---|---|---|---|
 | 2026-10-16 | Improve live simulator UI comparison/navigation after first user trial | Reviewed live telemetry growth and recent control/sensor states; added display-only orbit/zoom/reset to the environment canvas and a labeled simulator-truth comparison panel to the Ground Station. Updated user-facing run notes and continuity records. | Static source review only. No browser interaction or tests were run; user should hard-refresh both pages and check orbit/zoom and truth-versus-telemetry display. |
@@ -593,3 +608,18 @@ Test_drive_1 and 126 for Test_drive_2. The local Git reflog says
 cached upstream ref are equal at that commit. A fresh `git push origin main`
 could not resolve `github.com`, so the current remote could not be rechecked.
 Uncommitted live workspace changes are outside this snapshot commit.
+
+## 2026-10-17 — Create 2D system architecture diagram
+
+Created editable diagrams.net source and SVG preview under `outputs/Diagrams/`.
+The diagram maps the user-requested Environment, CubeSat, telemetry, and Ground
+Station functions into domain boxes, adds the simulator plant/bridge and
+software processing stages, and labels the boundary-crossing image, sensor,
+telemetry, command, and actuation flows. It distinguishes simulation-only
+virtual pitch/roll from physical yaw actuation, and marks uncertain sensor
+breakout levels, camera variant, UART/moteus wiring, and final radio/TMTC
+protocol as open. Updated the project/software indexes and design description.
+Both generated diagram files parse as XML. The Windows GUI itself could not be
+operated from this WSL session. Included the diagram and relevant documentation
+in the local `NR/Test_drive_2` snapshot; GitHub remains unchanged pending a
+successful `git push` after network name resolution is available.

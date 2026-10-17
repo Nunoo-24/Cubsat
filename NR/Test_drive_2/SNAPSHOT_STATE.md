@@ -13,3 +13,5 @@ to simulator-framed observations. The optional asymmetric camera marker enables
 simulated visual roll estimation; point-only target operation uses IMU leveling.
 Model values remain provisional. Start with `README.md` and
 `Context/HANDOFF.md`.
+
+A domain-boundary system diagram is included at `outputs/Diagrams/AE_CubeSat_System_Architecture.drawio` with an SVG preview. It distinguishes physical yaw actuation from simulated virtual pitch/roll and labels open hardware/protocol decisions.

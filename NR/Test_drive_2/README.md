@@ -57,3 +57,7 @@ runtime checks.
 
 This is a folder snapshot in the parent Git repository; it is not a separate
 Git repository.
+
+## System architecture diagram
+
+Open the editable [diagrams.net file](outputs/Diagrams/AE_CubeSat_System_Architecture.drawio) or its [SVG preview](outputs/Diagrams/AE_CubeSat_System_Architecture.svg). It shows the environment/test-plant, onboard CubeSat, and Ground Station domains with labeled interfaces and clearly separates the simulation-only axes from the physical yaw actuator path.

@@ -15,6 +15,12 @@ This document describes the current software baseline and separates implemented 
 
 ## 2. System boundary and architecture
 
+The detailed domain-boundary diagram is available as the editable
+[`AE_CubeSat_System_Architecture.drawio`](Diagrams/AE_CubeSat_System_Architecture.drawio)
+with an [SVG preview](Diagrams/AE_CubeSat_System_Architecture.svg). It shows
+the environment/test plant, onboard CubeSat processing and hardware, and
+Ground Station domains, with their exchanged data and commands labeled.
+
 ```mermaid
 flowchart LR
     subgraph CubeSat[CubeSat demonstrator — onboard]

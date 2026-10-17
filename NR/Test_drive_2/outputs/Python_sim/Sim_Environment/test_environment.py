@@ -391,6 +391,12 @@ class EnvironmentTests(unittest.TestCase):
 
                 telemetry = OnboardSoftware().process_observation(observation)
                 self.assertTrue(telemetry["yaw_estimate_valid"])
+                self.assertAlmostEqual(
+                    telemetry["pitch_estimate_rad"],
+                    math.radians(pitch_deg), places=10)
+                self.assertAlmostEqual(
+                    telemetry["roll_estimate_rad"],
+                    math.radians(roll_deg), places=10)
                 yaw_error = math.atan2(
                     math.sin(telemetry["yaw_estimate_rad"] -
                              env.plant.yaw_rad),
@@ -581,6 +587,14 @@ class EnvironmentTests(unittest.TestCase):
                 camera = env.observation()["sensors"]["camera"]
                 self.assertEqual(camera["valid"], expected)
 
+    def test_roll_marker_toggle_is_boolean_and_preserved_in_scene_state(self):
+        env = Environment()
+        self.assertFalse(env.snapshot()["camera_roll_marker_enabled"])
+        env.apply({"camera_roll_marker_enabled": True})
+        self.assertTrue(env.snapshot()["camera_roll_marker_enabled"])
+        with self.assertRaisesRegex(ValueError, "must be boolean"):
+            env.apply({"camera_roll_marker_enabled": 1})
+
     def test_valid_actuator_packet_updates_telemetry_and_plant_command(self):
         env = Environment()
         packet = {"protocol_version": 1, "source": "cubesat_sil",
@@ -610,6 +624,36 @@ class EnvironmentTests(unittest.TestCase):
                         "body_torque_nm": 0.0,
                         "virtual_axis_torque_nm": {axis: invalid_value},
                     })
+
+    def test_esp32_virtual_axis_torque_is_accepted_only_for_simulated_camera(self):
+        env = Environment()
+        env.accept_actuator({
+            "protocol_version": 1, "source": "cubesat_esp32",
+            "message_type": "actuator_telemetry", "sequence": 1,
+            "body_torque_nm": 0.0, "camera_frame_source": "simulated",
+            "virtual_axis_torque_nm": {"pitch": 0.01, "roll": -0.02},
+        })
+        self.assertEqual(env.virtual_pitch_torque_nm, 0.01)
+        self.assertEqual(env.virtual_roll_torque_nm, -0.02)
+        env.advance(dt_s=0.01)
+        self.assertGreater(env.plant.pitch_rate_rad_s, 0.0)
+        self.assertLess(env.plant.roll_rate_rad_s, 0.0)
+        telemetry = env.telemetry_snapshot()
+        self.assertEqual(telemetry["simulated_pitch_body_torque_nm"], 0.01)
+        self.assertEqual(telemetry["simulated_roll_body_torque_nm"], -0.02)
+        for frame_source in ("physical", "simulated-extra", "unavailable", None):
+            with self.subTest(frame_source=frame_source):
+                packet = {
+                    "protocol_version": 1, "source": "cubesat_esp32",
+                    "message_type": "actuator_telemetry", "sequence": 1,
+                    "body_torque_nm": 0.0,
+                    "camera_frame_source": frame_source,
+                    "virtual_axis_torque_nm": {"roll": 0.01},
+                }
+                with self.assertRaisesRegex(
+                    ValueError, "host-SIL or simulated ESP32"
+                ):
+                    Environment().accept_actuator(packet)
 
     def test_ground_telemetry_includes_separate_simulated_wheel_outputs(self):
         env = Environment()
@@ -794,6 +838,24 @@ class EnvironmentTests(unittest.TestCase):
                                    "message_type": "telecommand",
                                    "command_id": invalid_id,
                                    "command": "PING"})
+
+    def test_command_queue_offers_oldest_pending_command_one_at_a_time(self):
+        env = Environment()
+        for command_id, name in ((21, "PING"), (22, "SET_MODE")):
+            arguments = {"mode": "STANDBY"} if name == "SET_MODE" else {}
+            env.queue_command({"protocol_version": 1,
+                               "message_type": "telecommand",
+                               "command_id": command_id,
+                               "command": name,
+                               "arguments": arguments})
+
+        first_cycle = env.cycle_packet(20)
+        self.assertEqual([item["command_id"] for item in first_cycle["commands"]],
+                         [21])
+        next_cycle = env.cycle_packet(first_cycle["commands"][0]["command_id"])
+        self.assertEqual([item["command_id"] for item in next_cycle["commands"]],
+                         [22])
+        self.assertEqual(next_cycle["commands"][0]["command"], "SET_MODE")
 
 
 class EnvironmentHTTPHandlerTests(unittest.TestCase):

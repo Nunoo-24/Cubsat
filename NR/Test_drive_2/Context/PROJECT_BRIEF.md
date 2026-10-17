@@ -68,8 +68,11 @@ integration tests; wheel-speed performance still fails against the placeholder
 plant bound and has no measured hardware evidence.
 The host plant models decoupled pitch/yaw/roll. Yaw is controlled by a
 first-pass reaction-wheel model. Following the user's request for full
-directional simulated pointing, host SIL also drives pitch from vertical image
-error and levels roll from gravity using bounded virtual plant torques. These
+directional simulated pointing, host SIL drives pitch from vertical image
+error and roll from an optional asymmetric marker orientation (falling back to
+gravity-derived leveling) using bounded virtual plant torques. ESP32/Wokwi
+source now emits the same bounded pitch/roll torques only for simulator-framed
+observations. The physical motor path remains yaw-only. These
 pitch/roll inputs do not exist in physical firmware or a selected actuator
 design. Body frame X=pitch, Y=yaw, Z=roll. Inertias, torque/speed limits,
 stiffness, gains and lag are placeholders, not hardware-calibrated.

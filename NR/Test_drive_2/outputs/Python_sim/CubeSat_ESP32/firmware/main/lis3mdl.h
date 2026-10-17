@@ -10,3 +10,4 @@ typedef struct {
 
 bool cube_lis3mdl_init(void);
 bool cube_lis3mdl_read(cube_lis3mdl_sample_t *sample);
+uint8_t cube_lis3mdl_full_scale_gauss(void);

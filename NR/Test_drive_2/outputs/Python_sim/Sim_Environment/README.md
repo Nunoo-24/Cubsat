@@ -10,16 +10,20 @@ control decisions in this component.
 
 The current model includes pitch/yaw/roll dynamics and a first-pass yaw
 reaction-wheel actuator with provisional inertia, torque/speed limits, and
-motor lag. Host SIL also applies bounded ideal virtual pitch/roll torques so
+motor lag. Host SIL and the simulator-framed ESP32 source apply bounded virtual pitch/roll torques so
 image Y error points the camera in the vertical dimension while gravity keeps
 roll level.
 These axes are simulation-only; no physical pitch/roll actuators have been
 selected. Pendulum, body, wheel, virtual-axis, camera, and sensor parameters
 must be measured or confirmed before results become engineering evidence. The
-black target is a camera-facing circular marker located at the
-configured world XYZ point. Its image size follows pinhole projection from
-optical-axis depth; a monocular camera does not provide target range by itself.
-An oriented poster or non-circular target is not modeled.
+black target is a camera-facing point at the configured world XYZ point.
+Host-SIL frames add an optional asymmetric three-dot orientation fiducial so
+the camera detector can observe roll while preserving the point centroid for
+X/Y pointing. Featureless point frames have no camera roll cue and fall back
+to gravity-derived leveling. The marker is synthetic; the physical poster
+needs an equivalent visible orientation pattern for camera-directed roll.
+Apparent size follows pinhole projection from optical-axis depth; monocular
+size is not used as a target-range measurement.
 
 ## Run
 

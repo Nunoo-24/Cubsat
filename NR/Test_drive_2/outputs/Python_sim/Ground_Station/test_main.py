@@ -46,7 +46,8 @@ class GroundStationCommandTests(unittest.TestCase):
                 make_command_packet("SET_YAW_STEP", delta_deg=delta)
 
     def test_telemetry_csv_schema_includes_magnetometer_frame_and_vector(self):
-        for field in ("mag_valid", "mag_frame", "mag_age_s", "mag_x_uT",
+        for field in ("mag_valid", "mag_frame", "mag_full_scale_gauss",
+                      "mag_age_s", "mag_x_uT",
                       "mag_y_uT", "mag_z_uT"):
             with self.subTest(field=field):
                 self.assertIn(field, LOG_FIELDS)

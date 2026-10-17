@@ -64,6 +64,20 @@ full parameter grid.
 functional and performance requirements to implementation evidence, limits,
 and remaining verification gates.
 
+[`Axis_Control_Results.md`](Axis_Control_Results.md) tests host-SIL stabilization
+after target loss on pitch, yaw, and roll, and camera-directed pointing on all
+three axes. Camera roll is tested with an optional asymmetric three-dot marker;
+the accelerometer roll cue is hidden during the 15° recovery case. Point-only
+frames still fall back to gravity-derived leveling. The C detector and virtual
+pitch/roll source path are implemented for simulator-framed ESP32 observations,
+but C compilation, Wokwi, physical targets, and hardware remain unverified.
+
+Regenerate the axis-control report from `outputs/Python_sim/` with:
+
+```bash
+python3 -m Verification.evaluate_axis_control > ../Verification/Axis_Control_Results.md
+```
+
 Regenerate the report from `outputs/Python_sim/` with:
 
 ```bash

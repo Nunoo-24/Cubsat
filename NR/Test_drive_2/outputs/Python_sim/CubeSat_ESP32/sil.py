@@ -8,6 +8,7 @@ import json
 import math
 import os
 import time
+from http.client import HTTPException
 from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
 
@@ -21,6 +22,9 @@ from .control import PitchRollController, YawController
 
 BASE_URL = os.environ.get("CUBESAT_SIM_URL", "http://127.0.0.1:8000").rstrip("/")
 PERIOD_S = 0.02
+CYCLE_RETRY_MIN_S = 0.05
+CYCLE_RETRY_MAX_S = 0.5
+CYCLE_ERROR_LOG_INTERVAL_S = 5.0
 CAMERA_WIDTH_PX = 320
 CAMERA_HEIGHT_PX = 240
 CAMERA_FRAME_BYTES = CAMERA_WIDTH_PX * CAMERA_HEIGHT_PX
@@ -30,6 +34,12 @@ CAMERA_RLE_MAX_BYTES = MAX_ENCODED_BYTES
 def _next_cycle_deadline(previous_deadline, now):
     deadline = previous_deadline + PERIOD_S
     return now if deadline <= now else deadline
+
+
+def _cycle_retry_delay(failure_count):
+    """Back off failed bridge cycles without slowing the healthy 50 Hz loop."""
+    exponent = min(max(int(failure_count) - 1, 0), 4)
+    return min(CYCLE_RETRY_MAX_S, CYCLE_RETRY_MIN_S * (2 ** exponent))
 
 
 def _sample_age(sensor):
@@ -181,6 +191,7 @@ class OnboardSoftware:
             camera["pixel_error_y"] = (
                 -detection["error_y_px"] if detection["valid"] else None
             )
+            camera["roll_orientation_rad"] = detection.get("roll_orientation_rad")
             camera["target_dark_pixel_area"] = detection["dark_pixel_count"]
             camera["image_width_px"] = CAMERA_WIDTH_PX
             camera["image_height_px"] = CAMERA_HEIGHT_PX
@@ -237,6 +248,7 @@ class OnboardSoftware:
             math.atan2(accel_values["x"], accel_values["y"])
             if tilt_valid else None
         )
+        camera_roll_estimate_rad = None
         if imu_sample_valid:
             yaw_estimate_rad, attitude_valid, attitude_source = (
                 self.attitude_estimator.update(
@@ -273,6 +285,12 @@ class OnboardSoftware:
                     # camera/telemetry positive-down convention; positive
                     # pitch moves a fixed target upward in the image.
                     camera_error_y_rad = -math.atan(pixel_error_y / focal_px)
+                    orientation = camera.get("roll_orientation_rad")
+                    if orientation is not None and math.isfinite(float(orientation)):
+                        # A stationary upright target appears rotated opposite
+                        # the body roll in the image. Convert its marker angle
+                        # into the body roll estimate used by the controller.
+                        camera_roll_estimate_rad = wrap_pi(-float(orientation))
 
         # Both sensor streams contribute to the onboard observation and must
         # have valid ages. max() alone would hide a negative age in one stream.
@@ -332,12 +350,17 @@ class OnboardSoftware:
         yaw_step_elapsed_s = None
         if self.mode == "YAW_STEP":
             yaw_step_elapsed_s = max(0.0, now - self.yaw_step_started)
-            if now >= self.yaw_step_deadline:
+            if not attitude_valid:
+                self.mode = "SAFE"
+                self.yaw_step_status = "ATTITUDE_INVALID"
+                self.yaw_step_target_rad = None
+                self.yaw_step_settle_since = None
+            elif now >= self.yaw_step_deadline:
                 self.mode = "SAFE"
                 self.yaw_step_status = "TIMEOUT"
                 self.yaw_step_target_rad = None
                 self.yaw_step_settle_since = None
-            elif attitude_valid:
+            else:
                 yaw_step_error_rad = wrap_pi(
                     self.yaw_step_target_rad - yaw_estimate_rad)
                 settled = (abs(yaw_step_error_rad) <= math.radians(1.0) and
@@ -352,11 +375,6 @@ class OnboardSoftware:
                 else:
                     self.yaw_step_settle_since = None
                     self.yaw_step_status = "RUNNING"
-            else:
-                self.mode = "SAFE"
-                self.yaw_step_status = "ATTITUDE_INVALID"
-                self.yaw_step_target_rad = None
-                self.yaw_step_settle_since = None
         if self.mode in ("SAFE", "STANDBY", "WHEEL_SPEED_TEST", "WHEEL_SPEED_STOPPING"):
             output_torque = 0.0
             mode = "SAFE" if self.mode == "SAFE" else self.mode
@@ -393,7 +411,9 @@ class OnboardSoftware:
             tilt_output = self.pitch_roll_controller.update(
                 camera_error_y_rad,
                 pitch_estimate_rad if pitch_estimate_rad is not None else math.nan,
-                roll_estimate_rad if roll_estimate_rad is not None else math.nan,
+                (camera_roll_estimate_rad if camera_roll_estimate_rad is not None
+                 else roll_estimate_rad if roll_estimate_rad is not None
+                 else math.nan),
                 float(gyro.get("x", math.nan)),
                 float(gyro.get("z", math.nan)),
                 target_valid=target_valid,
@@ -429,6 +449,11 @@ class OnboardSoftware:
             "camera_error_y_rad": camera_error_y_rad if target_valid else None,
             "pitch_estimate_rad": pitch_estimate_rad,
             "roll_estimate_rad": roll_estimate_rad,
+            "camera_roll_estimate_rad": camera_roll_estimate_rad,
+            "roll_reference_source": ("CAMERA" if camera_roll_estimate_rad is not None
+                                      else "IMU" if roll_estimate_rad is not None
+                                      else "INVALID"),
+            "camera_roll_orientation_rad": camera.get("roll_orientation_rad"),
             "camera_focal_length_x_px": float(camera.get("focal_length_x_px", 0.0)),
             "camera_age_s": camera_age if camera_age_valid else None,
             "imu_valid": imu_age_valid and all(
@@ -451,6 +476,7 @@ class OnboardSoftware:
             "accel_z_m_s2": accel_values["z"],
             "mag_valid": magnetometer_valid,
             "mag_frame": "body" if magnetometer_valid else None,
+            "mag_full_scale_gauss": magnetometer.get("full_scale_gauss"),
             "mag_age_s": magnetic_age if math.isfinite(magnetic_age) else None,
             "mag_x_uT": magnetic_values["x"] if magnetometer_valid else None,
             "mag_y_uT": magnetic_values["y"] if magnetometer_valid else None,
@@ -510,9 +536,12 @@ def request_camera_frame(sequence, timeout=0.5):
 
 def main():
     onboard = OnboardSoftware()
-    print(f"CubeSat SIL connected to simulation bridge at {BASE_URL}")
+    print(f"Starting CubeSat SIL; waiting for simulation bridge at {BASE_URL}")
     print("This host process exercises the onboard path; it is not ESP32 emulation.")
     next_cycle = time.monotonic()
+    consecutive_failures = 0
+    last_error_log_at = -math.inf
+    has_connected = False
     try:
         while True:
             try:
@@ -527,9 +556,36 @@ def main():
                     camera_sample_started=cycle_started
                 )
                 request_json("/api/actuator", actuator_packet)
-            except (URLError, HTTPError, TimeoutError, ValueError, TypeError,
-                    KeyError) as exc:
-                print(f"SIL cycle failed: {exc}")
+            except (URLError, HTTPError, TimeoutError, ConnectionError,
+                    HTTPException, ValueError, TypeError, KeyError) as exc:
+                consecutive_failures += 1
+                now = time.monotonic()
+                if (consecutive_failures == 1 or
+                        now - last_error_log_at >= CYCLE_ERROR_LOG_INTERVAL_S):
+                    state = (
+                        "SIL bridge cycle failed"
+                        if has_connected else "Waiting for simulation bridge"
+                    )
+                    print(f"{state}: {exc}")
+                    last_error_log_at = now
+                time.sleep(_cycle_retry_delay(consecutive_failures))
+                # A failed HTTP exchange has missed its 50 Hz deadline. Resume
+                # after the retry delay instead of producing catch-up cycles.
+                next_cycle = time.monotonic()
+                continue
+
+            if not has_connected:
+                print(
+                    f"Simulation bridge connected at {BASE_URL}; "
+                    "SIL loop is running."
+                )
+                has_connected = True
+            elif consecutive_failures:
+                print(
+                    "Simulation bridge recovered after "
+                    f"{consecutive_failures} failed cycles."
+                )
+            consecutive_failures = 0
             now = time.monotonic()
             # Match the firmware: after a deadline miss, resume from now
             # instead of running back-to-back cycles to catch up.

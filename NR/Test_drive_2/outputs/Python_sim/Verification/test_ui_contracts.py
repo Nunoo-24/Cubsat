@@ -51,6 +51,10 @@ class BrowserUiContractTests(unittest.TestCase):
     def test_ground_station_ui_dom_ids(self):
         self.assert_ui_contract("Ground_Station/ui.html",
                                 "Ground_Station/main.py")
+        source = (PROJECT_ROOT / "Ground_Station" / "ui.html").read_text(
+            encoding="utf-8")
+        self.assertIn("t.mag_full_scale_gauss", source)
+        self.assertIn("±${Number(t.mag_full_scale_gauss)", source)
 
 
 if __name__ == "__main__":

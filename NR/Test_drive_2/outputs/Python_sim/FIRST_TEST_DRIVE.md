@@ -33,7 +33,7 @@ service with `Ctrl+C`; close it manually after reading any error. Start the
 environment before the SIL and Ground Station; they depend on its HTTP bridge.
 
 The launchers assume the WSL distribution is named `Ubuntu` and the project is
-at `/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim`. If `wsl.exe -l -q` shows
+at `/home/nunot/Mestrado_Codex/AE/outputs/Python_sim`. If `wsl.exe -l -q` shows
 a different distribution name, edit `WSL_DISTRO` in each `.bat` file. Windows
 localhost forwarding must be enabled by WSL for the browser links to work.
 Each launcher first checks that WSL can start `python3`; the component terminal

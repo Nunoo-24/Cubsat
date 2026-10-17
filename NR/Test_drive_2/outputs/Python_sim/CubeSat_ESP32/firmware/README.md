@@ -1,10 +1,12 @@
 # ESP32-S3 firmware
 
-This ESP-IDF project contains a Wi-Fi/HTTP simulation bridge client and a
-bounded yaw controller. By default it consumes synthetic camera/IMU data from
-`Sim_Environment`, responds to PING/mode commands, and returns body-torque
-telemetry to the simulated plant. Optional hardware adapters support camera
-capture, MPU-6050 and LIS3MDL sensing. An opt-in moteus r4 UART adapter
+This ESP-IDF project contains a Wi-Fi/HTTP simulation bridge client and onboard
+yaw, pitch, and roll control. The Wokwi profile uses synthetic camera/IMU data;
+yaw torque drives the modeled reaction wheel, while pitch and roll torque are
+virtual plant inputs enabled only for simulator-framed camera observations.
+The app responds to PING/mode commands and returns versioned telemetry.
+Physical motor actuation remains yaw-only. Optional hardware adapters support
+camera capture, MPU-6050 and LIS3MDL sensing. An opt-in moteus r4 UART adapter
 serializes bounded torque commands and checks returned mode/fault/position/
 velocity/torque. It is disabled by default, requires the physical camera and
 IMU options, and has not been ESP-IDF compiled or hardware-tested.
@@ -19,6 +21,53 @@ idf.py menuconfig
 idf.py build
 ```
 
+## One-time ESP-IDF setup in WSL/Ubuntu
+
+The current WSL image used for project checks has no C compiler or ESP-IDF
+installation. For a reproducible setup, Espressif's v5.3.5 Linux instructions
+install the required ESP32-S3 toolchain under the user's home directory:
+
+```bash
+sudo apt-get update
+sudo apt-get install build-essential git wget flex bison gperf \
+  python3 python3-pip python3-venv cmake ninja-build ccache \
+  libffi-dev libssl-dev dfu-util libusb-1.0-0
+mkdir -p "$HOME/esp"
+cd "$HOME/esp"
+git clone -b v5.3.5 --recursive https://github.com/espressif/esp-idf.git
+cd "$HOME/esp/esp-idf"
+./install.sh esp32s3
+. ./export.sh
+idf.py --version
+cmake --version
+xtensa-esp32s3-elf-gcc --version
+```
+
+This project requires CMake 3.22 or newer. If an existing ESP-IDF install is
+already present, activate it in the current terminal with
+`. "$IDF_PATH/export.sh"` instead of cloning another copy, then verify the
+version and tools above. ESP-IDF's environment activation is per terminal; do
+not add the export script to every shell startup. The corresponding official
+guides are [ESP-IDF v5.3.5 Linux setup](https://docs.espressif.com/projects/esp-idf/en/v5.3.5/esp32/get-started/linux-macos-setup.html)
+and [Wokwi ESP-IDF projects](https://docs.wokwi.com/vscode/esp-idf).
+
+This computer also has ESP-IDF 6.1 installed on Windows under `C:\esp\v6.1\esp-idf`
+with tools under `C:\Espressif\tools`. WSL interop currently fails with
+`UtilBindVsockAnyPort`, so WSL cannot launch that Windows compiler. To test the
+existing Windows installation, open its activated ESP-IDF PowerShell terminal
+and try the current firmware through the WSL UNC path:
+
+```powershell
+Set-Location '\\wsl.localhost\Ubuntu\home\nunot\Mestrado_Codex\AE\outputs\Python_sim\CubeSat_ESP32\firmware'
+idf.py set-target esp32s3
+idf.py build
+```
+
+This Windows-to-WSL filesystem build has not been verified. If CMake or Ninja
+rejects the UNC path, install the Linux toolchain in WSL using the steps above.
+The portable host C test runner needs a native host C compiler; the ESP32
+cross-compiler alone cannot run its test executables.
+
 Reconfigure after relocation. Any old build products from the Windows OneDrive
 path are stale and are not evidence that this tree builds.
 
@@ -31,9 +80,10 @@ project root:
 ./CubeSat_ESP32/firmware/run_host_tests.sh
 ```
 
-The script compiles and runs the yaw controller, attitude estimator, and target
-detector tests in a temporary directory, then removes the binaries. Set `CC` to
-the compiler executable if it is not available as `cc`. These checks do not
+The script compiles and runs four suites: yaw control, pitch/roll control,
+attitude estimation, and target detection. It uses a temporary directory and
+removes the binaries afterward. Set `CC` to the compiler executable if it is
+not available as `cc`. These checks do not
 replace an ESP-IDF build or target/emulator run. The current WSL image has no
 host C compiler, so the script cannot pass here.
 
@@ -108,7 +158,14 @@ watchdog zeros body torque. This bridge is a simulation transport only. It is
 not the physical TM/TC protocol.
 
 For the physical XIAO ESP32-S3 Sense camera, enable `CUBESAT_CAMERA_ENABLED`
-and ESP32-S3 PSRAM in `idf.py menuconfig`. The camera adapter captures one
+and ESP32-S3 PSRAM in `idf.py menuconfig`. The managed camera component is
+declared at `^2.1.8` for Espressif autofocus API support, and
+`CONFIG_CAMERA_AF_SUPPORT=y` is enabled in `sdkconfig.defaults`. The adapter
+detects the sensor PID: OV5640 must support, initialize, and report successful
+autofocus within 10 seconds or camera startup fails closed; the transition
+OV3660 uses fixed focus, and any other sensor PID is rejected. Confirm the
+module actually fitted to the board before interpreting image quality. The
+camera adapter captures one
 grayscale QVGA frame per control cycle and uses the onboard dark-pixel centroid
 detector. Python and C retain a thresholded pixel only when at least two other
 dark pixels occupy its 8-neighbourhood, then apply the configured coherent-area
@@ -125,8 +182,8 @@ damping uses 0.06 N·m·s/rad, versus 0.04 during visual tracking. The C source
 and host test reflect this, but firmware is not compiled in this environment.
 Leave the
 physical camera option disabled for Wokwi;
-that profile fetches a sequence-matched raw QVGA frame from the simulator
-bridge and runs the portable C detector. A fresh frame with no target permits
+that profile fetches a sequence-matched RLE1 QVGA frame from the simulator
+bridge, reconstructs the pixels, and runs the portable C detector. A fresh frame with no target permits
 gyro-rate damping; a missing or expired frame fails closed to zero torque.
 With the physical camera enabled, a 5x5 box-averaged 64x48 grayscale
 thumbnail is uploaded once per second as 3072 raw bytes to `/api/camera-preview`; the
@@ -146,9 +203,10 @@ read failure or missing sensor inhibits torque output in this firmware path.
 This path remains uncompiled and requires bench verification.
 
 For the optional LIS3MDL magnetometer, enable `CUBESAT_LIS3MDL_ENABLED` and
-choose address 0x1C or 0x1E in `idf.py menuconfig`. It shares the same I²C bus,
-samples at 80 Hz with a data-ready check, and reports a ±4 gauss raw vector in
-µT for telemetry only; its frame is labelled `sensor` until the physical
+choose address 0x1C or 0x1E and the measurement range (±4/8/12/16 gauss) in
+`idf.py menuconfig`. The default range remains ±4 gauss. It shares the same I²C
+bus, samples at 80 Hz with a data-ready check, and reports the selected raw
+field range scaled to µT for telemetry only; its frame is labelled `sensor` until the physical
 mounting transform is measured. No heading fusion or motor-interference
 compensation is implemented. The LIS3MDL chip supply is 1.9–3.6 V, so check
 the exact breakout's regulator and logic
@@ -222,8 +280,37 @@ and [`../../../../references/Hardware_and_Emulation_Notes.md`](../../../../refer
 
 ## Wokwi
 
-`wokwi.toml` and `diagram.json` select the XIAO ESP32-S3 board. Build the
-firmware, enable Wokwi's private gateway, then use the Wokwi VS Code extension
-to start the simulation. This configuration has not yet been built or run in
-this environment. See the project root README for the full three-process host
-simulation commands.
+The files in this directory are the Wokwi project root: `wokwi.toml` loads
+`build/flasher_args.json` plus `build/cube_firmware.elf`, and `diagram.json`
+selects the XIAO ESP32-S3 board with octal PSRAM. The ELF name matches
+`project(cube_firmware)` in `CMakeLists.txt`; the target is `esp32s3`.
+
+1. Build the default firmware profile using the commands above. Wokwi reads
+   the complete ESP-IDF flash layout from `flasher_args.json`; do not point it
+   at only the application `.bin`.
+2. Open this `firmware/` directory as the VS Code workspace, install the Wokwi
+   extension, and start **Wokwi: Start Simulator**. If VS Code is opened at
+   `Python_sim/` instead, choose this nested `wokwi.toml` with **Wokwi: Select
+   Config File**.
+3. Start the Python simulation environment on the same computer at
+   `http://127.0.0.1:8000`, then enable Wokwi's **Private IoT Gateway**. The
+   firmware is configured for `Wokwi-GUEST` and
+   `http://host.wokwi.internal:8000`; the public gateway cannot reach this
+   local bridge. The private gateway is a Wokwi paid-plan feature according
+   to its current documentation.
+4. Check the serial log for Wi-Fi connection and successful bridge cycles;
+   then check that plant telemetry updates. Ground Station can be started at
+   `http://127.0.0.1:8001` as usual.
+
+With ESP-IDF 6.0 or newer and Espressif's `idf-wokwi` extension installed,
+`idf.py wokwi` is an alternative to starting the simulator from the VS Code
+extension. This command is not available in the project's current ESP-IDF
+5.3+ minimum unless the toolchain is upgraded. Official setup details:
+[Wokwi ESP-IDF projects](https://docs.wokwi.com/vscode/esp-idf),
+[Wokwi project configuration](https://docs.wokwi.com/vscode/project-config),
+and [Wokwi ESP32 Wi-Fi/private gateway](https://docs.wokwi.com/guides/esp32-wifi).
+
+This configuration has only been checked statically in this environment; no
+ESP-IDF build, Wokwi boot, gateway connection, or telemetry exchange has run
+here. See the project root README for the three-process host simulation
+commands.

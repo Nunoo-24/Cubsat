@@ -1,34 +1,59 @@
-# AE CubeSat — Test drive 2
+# AE CubeSat — Test Drive 2 (refreshed)
 
-Current second test-drive state: lost-target yaw rate damping gain 0.06 N·m·s/rad and moderated roll gains Kp=0.24/Kd=0.19, cap ±0.035 N·m; full verification 191 Python tests passed.
+This is a self-contained snapshot of the active AE project, refreshed on
+17 October 2026. It contains the current source, inputs, context, outputs,
+verification records, and run instructions. It does not contain Git internals,
+Python caches, build products, runtime logs, or machine-specific IDE settings.
 
-## Start a test session
+## Start the host simulation
 
-Read [`Context/HANDOFF.md`](Context/HANDOFF.md),
-[`inputs/Prompts.txt`](inputs/Prompts.txt), and
-[`outputs/Python_sim/README.md`](outputs/Python_sim/README.md). The full
-project overview from the source workspace is preserved in
-[`AE_PROJECT_README.md`](AE_PROJECT_README.md).
-
-Follow [`outputs/Python_sim/SECOND_TEST_DRIVE.md`](outputs/Python_sim/SECOND_TEST_DRIVE.md) for the
-test procedure. Start one terminal per component from this snapshot:
+From the snapshot root, follow [`outputs/Python_sim/SECOND_TEST_DRIVE.md`](outputs/Python_sim/SECOND_TEST_DRIVE.md).
+Start each component in its own terminal, in this order:
 
 ```bash
 cd outputs/Python_sim
-python3 -u -m Sim_Environment.main
+python3 -m Sim_Environment.main
 ```
 
 ```bash
 cd outputs/Python_sim
-python3 -u -m CubeSat_ESP32.sil
+python3 -m CubeSat_ESP32.sil
 ```
 
 ```bash
 cd outputs/Python_sim
-python3 -u -m Ground_Station.main
+python3 -m Ground_Station.main
 ```
 
-Open the environment at <http://127.0.0.1:8000> and the Ground Station at
-<http://127.0.0.1:8001>. Logs and generated runtime files stay inside this
-snapshot. The snapshots are ordinary folders within the parent Git repo; they
-do not contain a separate `.git` directory.
+Open the environment at <http://127.0.0.1:8000> and Ground Station at
+<http://127.0.0.1:8001>. The Windows launchers are under
+`outputs/Python_sim/Launchers/`.
+
+## Verification
+
+Run the offline suite from `outputs/Python_sim/`:
+
+```bash
+./run_verification.sh
+```
+
+The source workspace's latest run passed 218 Python tests, Python syntax
+compilation, and all six report generators. Portable C and ESP-IDF checks were
+skipped there because the required compiler and `idf.py` were unavailable.
+Rerun the command above to verify this packaged copy in your environment.
+Live TCP/browser behavior, Wokwi, and physical hardware require separate
+runtime checks.
+
+## Project context
+
+- [`Context/HANDOFF.md`](Context/HANDOFF.md) — current architecture, decisions,
+  history, and continuation steps.
+- [`outputs/reports/AE_Project_Current_State_Report_2026-10-17.md`](outputs/reports/AE_Project_Current_State_Report_2026-10-17.md)
+  — concise current-state and verification summary.
+- [`AE_PROJECT_README.md`](AE_PROJECT_README.md) — project-level workspace
+  guide copied into this snapshot.
+- [`outputs/Python_sim/README.md`](outputs/Python_sim/README.md) — component,
+  test, firmware, and emulation commands.
+
+This is a folder snapshot in the parent Git repository; it is not a separate
+Git repository.

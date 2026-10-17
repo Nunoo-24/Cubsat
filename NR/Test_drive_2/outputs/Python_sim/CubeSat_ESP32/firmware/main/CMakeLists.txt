@@ -1,5 +1,5 @@
 set(cubesat_sources "cubesat_main.c" "yaw_controller.c" "attitude_estimator.c"
-                    "black_target.c")
+                    "black_target.c" "pitch_roll_controller.c")
 set(cubesat_requirements esp_http_client esp_wifi esp_event esp_netif
                          esp_timer nvs_flash)
 if(CONFIG_CUBESAT_MPU6050_ENABLED OR CONFIG_CUBESAT_LIS3MDL_ENABLED)
@@ -8,6 +8,7 @@ if(CONFIG_CUBESAT_MPU6050_ENABLED OR CONFIG_CUBESAT_LIS3MDL_ENABLED)
 endif()
 if(CONFIG_CUBESAT_CAMERA_ENABLED)
     list(APPEND cubesat_sources "xiao_camera.c")
+    list(APPEND cubesat_requirements esp32-camera)
 endif()
 if(CONFIG_CUBESAT_MPU6050_ENABLED)
     list(APPEND cubesat_sources "mpu6050.c")

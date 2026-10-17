@@ -1,6 +1,6 @@
 # Synthetic Camera Transport Evaluation
 
-Generated: 2026-10-16 23:44:47 UTC
+Generated: 2026-10-17 11:06:33 UTC
 
 This report checks the synthetic scene's lossless RLE1 transport and
 measures codec CPU time on the host that runs this command. It does not
@@ -30,8 +30,8 @@ Measured over 300 encode/decode iterations of the default frame on this host:
 
 | Operation | Mean | p95 | Maximum |
 |---|---:|---:|---:|
-| RLE1 encode | 4.755 ms | 7.427 ms | 9.912 ms |
-| RLE1 decode | 0.011 ms | 0.011 ms | 0.057 ms |
+| RLE1 encode | 4.373 ms | 6.011 ms | 8.536 ms |
+| RLE1 decode | 0.011 ms | 0.012 ms | 0.042 ms |
 
 These local timings exclude camera rendering and all network activity.
 The C decoder is source-tested but has not been compiled in the current

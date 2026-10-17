@@ -6,6 +6,26 @@ three conditions: log its use, verify generated values/formulas against cited
 primary sources, and take full responsibility for submitted work. AI must not be
 used in the E4 written exam.
 
+## 2026-10-17 — Resume context and refresh full offline verification
+
+Re-read the workspace and AE project instructions, current handoff, project
+brief, software review, user prompts and notes, design description,
+requirements traceability, current status guide, and current generated reports.
+Confirmed that `Context/original_chat.json.txt` is empty. The supplied PDFs
+remain in `Source/`, but no PDF text extraction tool is installed. The active
+software worktree was treated as authoritative; archived `NR/Test_drive_*`
+copies were not reread line-by-line.
+
+Ran `outputs/Python_sim/run_verification.sh` to completion. All 218 Python
+tests passed in 110.024 seconds; Python syntax compilation and all six report
+generators completed. Portable C host tests and ESP-IDF build were skipped
+because no C compiler and no `idf.py` are on PATH. Live sockets/browser,
+Wokwi, and hardware were not exercised. The run regenerated the simulation,
+camera transport, camera geometry, camera image-noise, camera detector timing,
+and axis-control reports. A new report,
+`outputs/reports/AE_Project_Current_State_Report_2026-10-17.md`, records the
+current state, test evidence, unresolved gates, and context-reading limits.
+
 | Date | Work assisted | AI contribution | Verification / author action |
 |---|---|---|---|
 | 2026-10-16 | Improve live simulator UI comparison/navigation after first user trial | Reviewed live telemetry growth and recent control/sensor states; added display-only orbit/zoom/reset to the environment canvas and a labeled simulator-truth comparison panel to the Ground Station. Updated user-facing run notes and continuity records. | Static source review only. No browser interaction or tests were run; user should hard-refresh both pages and check orbit/zoom and truth-versus-telemetry display. |
@@ -213,3 +233,363 @@ assistance; it does not replace that review.
 | 2026-10-17 | Prepare second live simulation test drive | Added `outputs/Python_sim/SECOND_TEST_DRIVE.md` with clean startup, baseline, vertical pitch, horizontal yaw, roll-pulse recovery, data capture and interpretation steps. Updated AE/software README entry points, the status report, and the current handoff summary to point to the second-drive checklist and current 190-test checkpoint. | Documentation and link consistency reviewed. The existing 190-test and syntax-compilation result is the latest code verification; no new test run was needed for this documentation-only update. Live Windows/WSL networking and browser behavior remain user-side verification gates. |
 
 | 2026-10-17 | Add yaw IMU damping after camera target loss and moderate stabilization | Added a separate host-SIL lost-target yaw damping gain (0.06 N·m·s/rad, 1.5× tracking D gain) and an end-to-end simulated Y-torque pulse regression that drives the target out of frame and verifies yaw rate falls below 0.02 rad/s. Matched the same lost-target gain in the portable C controller and its host test. Moderated roll PD gains to Kp=0.24/Kd=0.19 and virtual torque limit to ±0.035 N·m; documented the larger allowed roll transient and updated the second test-drive sequence, subsystem/API/ICD notes, traceability, report, and handoff. | `./run_verification.sh` passes 191 Python tests and syntax compilation and regenerates all five reports. The Y pulse (0.1 N·m for 0.5 s) returns rate below 0.02 rad/s within 4.5 s of target loss. The Z pulse (0.05 N·m for 0.5 s) peaks below 11° and reaches the 1°/0.5°/s band within 3 s after pulse. After the C source change, 100 focused Python controller, environment, and firmware-source-contract tests passed. Portable C execution and ESP-IDF checks skipped because toolchains are unavailable. Live browser, Wokwi, firmware, and hardware remain unverified. |
+
+| 2026-10-17 | Create independent NR test-drive snapshots | Created `outputs/Python_sim/NR/Test_drive_1/` and `Test_drive_2/` as self-contained copies of the AE project, each with its own source, inputs, reports/outputs, README and context. Test_drive_1 preserves the 190-test first full-direction tuning; Test_drive_2 preserves the current 191-test yaw-damping and moderated-roll tuning. Added a snapshot index, linked it from the live software README, and recorded the handoff. | Confirmed both copies contain all three runnable components, project inputs and context handoff; checked Markdown links (zero broken after correcting two first-drive links) and removed Windows `Zone.Identifier` sidecars. Snapshots exclude `.git`, generated telemetry logs, caches and build outputs. No code tests were run for this file-copy/documentation task; prior verification counts describe the source states at capture. |
+
+| 2026-10-17 | Resume AE goal and verify all simulated control axes | Added deterministic host-SIL axis checks using 0.5 s disturbances at half the provisional pitch/yaw/roll torque limits while the camera is occluded. Added independent camera-centering checks for yaw/image X and pitch/image Y, plus a point-target roll-observability check. Integrated the new report and three regression tests into the verification runner; updated traceability and camera/control/design notes. | Focused `Verification.test_axis_control` passes 3/3. Report measurements: pitch settles to gravity-level <1°/<0.5°/s 2.01 s after pulse; yaw rate settles <0.5°/s in 0.60 s but retains the new 2.64° heading; roll levels in 1.32 s. Camera cases settle under 2° in 2.34 s (yaw) and 1.03 s (pitch). A centered featureless point supplies zero X/Y error at 15° camera roll, so camera-directed roll is not observable with this detector; gravity-derived IMU torque levels it. `./run_verification.sh` then passes 194 Python tests, compileall and all report generators; portable C and ESP-IDF checks skip because the toolchains are absent. Live sockets, firmware, emulator and hardware remain unverified. |
+
+| 2026-10-17 | Add camera-directed roll to the simulated CubeSat pipeline | Added an optional asymmetric three-dot target fiducial (disabled by default), directed image-angle estimation in Python and portable C, camera-based roll feedback with IMU fallback, and a bounded C pitch/roll controller that supplies virtual torques only for simulator-framed ESP32 telemetry. Added a 24°/20° inner-field limit to keep the fiducial un-clipped during edge acquisition. Exposed marker toggle, measurement/source telemetry, Ground Station CSV/UI fields, host and C test cases, architecture/API/ICD/traceability/status updates, and the second test-drive roll procedure. | `./run_verification.sh` passes 199 Python tests, `compileall`, and all six reports. The 15° camera-roll case settles within ±1°/±0.5°/s in 8.32 simulated seconds with accelerometer roll hidden; yaw/pitch camera pointing remains below 2° with the marker enabled. The C module test is included in the runner but skipped because no C11 compiler is available; ESP-IDF/Wokwi, sockets/browser, physical target marker, and hardware remain unverified. Point-only mode remains default and uses IMU roll fallback. |
+# 2026-10-17 — Wokwi configuration and setup review
+
+Rechecked the ESP-IDF/Wokwi configuration against the official Wokwi ESP-IDF,
+project configuration, and Wi-Fi gateway documentation. Confirmed static
+agreement between `wokwi.toml`, CMake project name, ESP32-S3 target, XIAO
+ESP32-S3 board, and octal PSRAM setting. Expanded the firmware README with the
+build/workspace/startup sequence, private-gateway requirement for access to the
+local plant, and the ESP-IDF 6.0+ requirement for `idf.py wokwi`. Corrected a
+stale README description from raw frame transfer to the implemented RLE1 path.
+Added these sourced emulator constraints to `references/Hardware_and_Emulation_Notes.md`,
+the operator-facing `outputs/reports/AE_Project_Status_and_Run_Guide.md`, and
+the continuation gate to `Context/HANDOFF.md`.
+
+No firmware compiler, ESP-IDF build, Wokwi runtime, or live bridge check was
+available; no runtime verification is claimed. Sources: [Wokwi ESP-IDF guide](https://docs.wokwi.com/vscode/esp-idf),
+[project configuration](https://docs.wokwi.com/vscode/project-config), and
+[Wi-Fi gateway guide](https://docs.wokwi.com/guides/esp32-wifi).
+
+## 2026-10-17 — Expand portable C camera-roll coverage
+
+Expanded `CubeSat_ESP32/firmware/test_black_target.c` from a single positive
+fiducial angle to a five-angle signed sweep from -30° through +30°, checking
+orientation error and centroid centering. The existing host-test runner
+includes this test. No C compiler is available in this WSL session, so the
+changed C test has not been compiled or run; this is additional regression
+source coverage only, not verification evidence.
+
+In the same review, changed `cubesat_main.c` to require an exact
+`camera_frame_source == "simulated"` before enabling virtual pitch/roll plant
+torques; the previous first-character check was broader than intended. Extended
+`Verification/test_firmware_source_contracts.py` to guard that gate, freshness
+and fault checks, and camera-roll preference with IMU fallback. The focused
+axis/control/source-contract/emulation suite passes 10/10; C firmware remains
+uncompiled. Updated the CAM-02 traceability row to distinguish the new C test
+source coverage from executed verification. Then reran `./run_verification.sh`:
+199/199 Python tests, syntax compilation, and all six report generators passed;
+C and ESP-IDF were explicitly skipped because `cc` and `idf.py` are absent.
+
+## 2026-10-17 — Verify simulated pitch/roll sensor axes at combined poses
+
+Strengthened the existing five-pose environment/SIL regression to assert that
+accelerometer-derived pitch and roll estimates recover plant truth across
+combined yaw, pitch and roll, in addition to checking gravity magnitude and
+yaw estimation. Targeted test passes; the full verification runner passes
+199/199 Python tests, syntax compilation and all six report generators. C and
+ESP-IDF checks remain skipped. This confirms only the ideal synthetic sensor
+frame mapping, not physical mounting or dynamic accelerometer effects.
+
+## 2026-10-17 — Verify exact simulator frame-source gate at the plant bridge
+
+Expanded the environment bridge regression to accept ESP32 virtual-axis torque
+only for the exact `simulated` camera-frame label and reject `physical`,
+`simulated-extra`, `unavailable`, and missing labels. Targeted bridge/firmware
+contract checks pass 5/5. The full verification runner was rerun after this
+change: 199 Python tests, syntax compilation, and all six report generators
+pass; portable C and ESP-IDF are still skipped due unavailable tools.
+
+## 2026-10-17 — Bring progress estimate and project tree current
+
+Audited the status report against the preserved request to show a simulated-work
+estimate and a compact project tree mapped to `inputs/Prompts.txt`. Retained the
+rough 65% estimate and made its qualitative meaning/remaining runtime gates
+explicit. Rebuilt the tree to include all named subsystems and hardware while
+separating implemented, Python-tested, source-only, and unverified items.
+Marked the older launcher-preparation text as a historical checkpoint. No code
+or runtime evidence changed in this report-only update.
+
+## 2026-10-17 — Bound portable C image dimensions
+
+Source review identified that the generic C RLE1 decoder accepted an arbitrary
+requested output pixel count and the target detector accepted arbitrarily
+large row strides, despite fixed supported image maxima. Added a 640×480 decoded
+raster limit and a 640-byte stride limit, plus C test cases for oversized pixel
+requests/no partial write and oversized stride. Added Python source-contract
+checks and updated CAM-01 traceability/status notes. Corrected the CubeSat
+README to distinguish the generic raster cap from the active QVGA requirement.
+Focused checks pass and the full runner passes 199 Python tests, syntax
+compilation, and all six report generators; C tests/ESP-IDF remain skipped
+because the required tools are absent.
+
+
+
+## 2026-10-17 — Validate C camera buffer length
+
+Extended the portable C detector API with the actual grayscale buffer length
+and a `stride * height` minimum-size guard. Updated the simulator frame and
+physical camera adapter to pass their known buffer lengths; added a truncated
+frame case to the C test source and a Python source-contract check. Focused
+source-contract tests pass 4/4. The full runner passes 199 Python tests,
+syntax compilation, and all six report generators. C host tests and ESP-IDF
+remain skipped because `cc` and `idf.py` are unavailable, so the C regression
+and firmware build have not executed. Updated the Camera subsystem and CubeSat
+README with the frame-buffer contract and test limitation; a six-file targeted
+Markdown audit found no broken relative links or carriage returns.
+
+
+## 2026-10-17 — Check C detector API call consistency
+
+Added a Python source-contract regression that scans all firmware C/header
+files and confirms every detector declaration/call uses seven arguments after
+adding the accessible-buffer-length parameter. Focused source contracts pass
+5/5; the full runner passes 200 Python tests, syntax compilation, and all six
+reports. Portable C and ESP-IDF remain skipped because no C compiler or
+`idf.py` is installed. Checked common compiler paths and Python C-parser
+packages; none were available. This source check verifies interface consistency,
+not C syntax or runtime behavior.
+
+
+## 2026-10-17 — Wait for service readiness in Windows launchers
+
+Replaced fixed browser-open delays in the environment and Ground Station
+launchers with a PowerShell HTTP readiness poll (45-second timeout, status 200
+and expected page title). Failure stays visible; service terminals continue in
+`cmd.exe /k`. Added static contract coverage and documented Windows-runtime
+limits in the test-drive/readme/status/handoff material. Focused launcher config
+tests pass 3/3, all wrapper scripts pass `bash -n`, and full verification passes
+201 Python tests, syntax compilation, and all six reports. Windows batch and
+PowerShell launch behavior is not executable in this WSL session; C/ESP-IDF
+remain skipped for unavailable tools.
+
+
+## 2026-10-17 — Make host SIL bridge startup resilient
+
+Changed `CubeSat_ESP32.sil` to report waiting rather than claiming an early
+connection, retry connection-reset and HTTP protocol failures with bounded
+50–500 ms exponential backoff, rate-limit repeated failures to five-second
+intervals, and announce a connection/recovery only after a complete successful
+cycle. Added tests for the
+retry curve and recovery after an initial bridge error, and documented expected
+terminal output. Focused retry/launcher/firmware-contract checks pass 10/10; the
+full runner passes 203 Python tests, syntax compilation, and all six reports. C
+and ESP-IDF remain skipped due unavailable tools; no live sockets or Windows
+launcher behavior is claimed.
+
+
+## 2026-10-17 — Correct firmware camera pitch direction
+
+Compared detector and host-SIL coordinate conversions and found C firmware was
+negating the detector's positive-down Y offset, opposite to the host controller
+for camera-guided pitch. Removed the extra sign inversion and added a source
+contract asserting the bearing conversion; documented raster-versus-scene Y
+conventions in the camera/control subsystem notes, architecture, ICD and
+traceability. Focused source-contract plus control tests pass 44/44. Full
+verification passes 203 Python tests, syntax compilation, and all six reports.
+Portable C and ESP-IDF remain uncompiled because their toolchains are absent.
+
+
+## 2026-10-17 — Check C/SIL accelerometer tilt parity
+
+Compared firmware and host-SIL pitch/roll gravity formulas with the simulated
+accelerometer frame. Both derive pitch with `atan2(-az, hypot(ax, ay))`, roll
+with `atan2(ax, ay)`, and accept 0.8–1.2 g magnitude. Added source-contract
+assertions and recorded the limitation that the C path and physical sensor
+mounting are unverified. Focused source contracts pass 5/5; the existing full
+runner result remains 203 tests passing, `compileall`, and six reports.
+
+
+## 2026-10-17 — Guard C/Python pitch-roll controller parity
+
+Added a source-contract regression comparing all portable C pitch/roll default
+gains, limits and validity settings with the Python reference, plus normalized
+pitch and roll torque equations. Focused firmware source contracts pass 6/6.
+The full runner passes 204 Python tests, syntax compilation, and all six
+reports. C and ESP-IDF remain unbuilt because the toolchains are not installed.
+A parallel source review found the C and Python marker covariance/third-moment
+formulas, direction logic, thresholds and angle wrapping equivalent; existing C
+test source sweeps signed marker angles, but has not been executed.
+
+
+## 2026-10-17 — Guard yaw controller parity
+
+Added a firmware source-contract regression that compares all six C yaw
+controller defaults with the Python SIL defaults and verifies the tracking and
+lost-target rate-damping branches match. The focused firmware contract suite
+passes 7/7; the full runner passes 205 Python tests, syntax compilation and all
+six reports. Portable C and ESP-IDF still skip for missing compiler/tools, so
+this establishes source parity rather than executed firmware behavior. Added
+the SIL startup-retry test module to the focused unittest commands in both
+project READMEs.
+
+
+## 2026-10-17 — Align yaw-step terminal status
+
+Found a C/Python boundary mismatch when attitude became invalid on the exact
+yaw-step deadline: C reported `ATTITUDE_INVALID`, Python `TIMEOUT`. Both safely
+entered SAFE, but their telemetry differed. Reordered the Python checks to
+match C and added a simultaneous-condition regression plus source-contract
+checks for timeout, settle-band and dwell limits. Focused checks pass 9/9; full
+verification passes 207 Python tests, syntax compilation and all six reports.
+C/ESP-IDF remain uncompiled because the toolchains are unavailable.
+| 2026-10-17 | Ordered telecommand queue regression | Added a bridge test that queues two commands and proves only the oldest is offered per onboard cycle, with the second delivered after the controller advances its command ID. The full verification runner passes 208 Python tests, syntax compilation, and all six reports; C/ESP-IDF skip for unavailable toolchains, and live sockets remain unverified. |
+| 2026-10-17 | Verify combined camera correction on yaw, pitch and roll | Added an integrated host-SIL trajectory from 10° yaw, −8° pitch, and 12° roll with an off-axis target and asymmetric marker. Simultaneous image centering and marker roll correction stay in the specified simulation bands for 0.5 s starting at 1.99 s. Focused axis checks pass 5/5; full verification passes 209 Python tests, syntax compilation and all six reports. Firmware C/ESP-IDF and live hardware remain unverified. |
+| 2026-10-17 | Verify ESP32 virtual-axis telemetry routing | Added a source contract that checks firmware telemetry field names and simulator-frame gating against the bridge, and extended the bridge test to confirm accepted simulated pitch/roll torques drive the matching plant axes and telemetry outputs. Focused checks pass; full verification passes 210 Python tests, syntax compilation and all six reports. C/ESP-IDF, Wokwi and live HTTP remain unverified. |
+| 2026-10-17 | Clarify firmware/emulator run instructions | Audited the available toolchain commands and corrected duplicated verification-script wording and the ESP-IDF README description of simulator-only pitch/roll torque. Current PATH has Python but no C compiler, `idf.py`, Wokwi CLI, Node.js or npm; the full offline run still passes 210 Python tests and syntax compilation, with C/ESP-IDF explicitly skipped. |
+| 2026-10-17 | Improve local HTTP startup diagnostics | After confirming the environment and Ground Station both fail here with `PermissionError: Operation not permitted`, added shared diagnostics for denied socket creation and occupied ports. Both services now bind before starting background work where relevant. Four tests cover the helper and both service integrations. The full runner passes 214 Python tests, syntax compilation and all six reports; the local sandbox still prevents live TCP verification. |
+| 2026-10-17 | Add OV5640 autofocus startup validation | Compared Seeed's XIAO Sense camera guidance with Espressif `esp32-camera` 2.1.8 autofocus API. Added PID-based OV5640 autofocus initialization and explicit focused-status check; failure deinitializes the camera. Fixed-focus variants remain supported. Updated component minimum, conditional CMake dependency, SDK defaults, source-contract coverage and camera/hardware docs. Focused checks pass 12/12; full suite passes 214/214 and syntax compilation. Five reports regenerated by the runner and the sixth rerun successfully. Firmware build and hardware remain unverified because the required toolchain/board are unavailable. |
+| 2026-10-17 | Fix autofocus feature-header include order | Source review found `CONFIG_CAMERA_AF_SUPPORT` was checked before `sdkconfig.h` inclusion. Reordered includes and added a source-contract regression. Focused source/config tests pass 12/12; syntax compilation and updated-document local-link check pass. C/ESP-IDF compilation remains unavailable. |
+| 2026-10-17 | Verify simultaneous sensor stabilization on XYZ | Added a host-SIL case applying half-limit pitch, yaw, and roll torques together during camera occlusion. All three controller outputs activate and the simultaneous rate/tilt bands settle 2.01 s after the pulse. Axis suite passes 6/6, full Python suite 215/215, syntax compilation passes, and the axis report was regenerated. This is decoupled host-plant evidence; C/ESP-IDF, Wokwi, live network and hardware remain unverified. |
+| 2026-10-17 | Restrict physical camera startup to verified module variants | Changed the XIAO adapter to accept OV5640 only after successful autofocus and OV3660 as fixed focus; unknown camera PIDs now deinitialize and fail startup. Updated source contracts, firmware/camera guidance, hardware note, and traceability. This matches Seeed's documented transition pair; firmware compilation and physical PID detection remain unverified. |
+| 2026-10-17 | Add selectable LIS3MDL full-scale range | Checked ST AN4602 and datasheet FS bits and sensitivities. Added a Kconfig choice for ±4/8/12/16 gauss, retained ±4 default, configured CTRL_REG2 accordingly, and scaled raw samples with the matching LSB/gauss value. Updated firmware/subsystem/reference/status documentation and added static config/source coverage. Focused checks pass 13/13; all 216 Python tests and syntax compilation pass. ESP-IDF build and physical breakout remain unverified; SPI is not implemented. |
+
+
+### Report LIS3MDL full-scale setting in telemetry
+
+Propagated the selected physical LIS3MDL range through firmware telemetry and
+Ground Station UI/CSV; synthetic SIL reports null. Updated API/ICD/subsystem
+docs and project status. Focused checks pass 73/73, full Python suite 217/217,
+and compileall passes. Firmware C/ESP-IDF and physical behavior remain
+unverified.
+
+
+### Refresh simulation results and verify camera roll in both directions
+
+The full runner passed 217 tests and syntax compilation, then stopped in report
+generation. Reran the simulation evaluator directly, replacing the temporary
+historical snapshot with a fresh 17 October report. Extended the all-axis
+camera-roll check to +15° and −15° with accelerometer roll hidden; the axis
+suite passes 7/7. The bilateral axis report is complete. Full test discovery later confirmed
+218 passing tests.
+
+
+### Verify oriented camera-roll correction in both directions
+
+Parameterized the host-SIL oriented-marker roll case and added +15°/−15°
+coverage with accelerometer roll hidden. Both signs select CAMERA, command
+corrective torque, and settle under 1° and 0.5°/s. Regenerated the axis report
+with both results and regenerated the current simulation model report. Focused
+axis tests pass 7/7; full Python discovery passes 218/218; compileall passes.
+Firmware C/ESP-IDF, Wokwi, live browser/TCP, and physical behavior remain
+unverified.
+
+### Correct setup guide's simulation-axis description
+
+The setup guide inaccurately said only yaw was actively controlled. Updated it
+to describe all-axis host SIL, simulator-framed ESP32 virtual pitch/roll, and
+the yaw-only physical motor path. Documentation-only correction; the verified
+218 Python tests and syntax compilation remain current.
+
+### Remove duplicate work from the bilateral camera-roll test fixture
+
+Changed the axis test class to reuse its +15° result from the bilateral sweep
+instead of running that simulation twice. Focused axis verification passes 7/7
+in 48.12 s. `compileall` and an updated-file whitespace/content check pass. No
+C compiler, ESP-IDF, or Wokwi CLI is installed/on PATH, so those firmware gates
+remain open.
+
+
+### Verify camera yaw and pitch correction from both image-error signs
+
+Expanded the host-SIL camera-pointing evaluator from one positive-side target
+per axis to signed target offsets on both yaw/image-X and pitch/image-Y. All four
+rendered-frame cases settle under 2° and assert opposite signed initial errors
+with cross-axis projection error <1e-5 rad. The focused axis suite passes 7/7; full discovery passes 218/218 in 137.37 s,
+and `compileall` passes. The refreshed report shows 1000/1000 valid frames per
+case and 2.29–2.34 s yaw / 1.03 s pitch settling.
+
+### Close out signed camera-axis evidence and check firmware toolchain locations
+
+Full Python discovery passes 218/218 in 137.37 s after adding ±yaw/image-X and
+±pitch/image-Y rendered-frame cases; the axis report now lists signed initial
+errors and settling times. `compileall` and local Markdown-link checks pass.
+A file search under `/home/nunot`, `/opt`, and `/usr/local` found no IDF,
+ESP32-S3 compiler, GCC, or Clang, confirming firmware compilation cannot run in
+this environment. No C/ESP-IDF runtime claim is made.
+
+### Align portable C test instructions with the actual runner
+
+Compared `run_host_tests.sh` with both READMEs. The runner includes four suites,
+including the pitch/roll controller, while the docs said three. Updated the
+firmware and Python_sim README text. The C tests remain unexecuted because a
+host compiler is unavailable.
+
+
+### Document available ESP-IDF setup routes
+
+Confirmed the Windows ESP-IDF 6.1 tree at `C:\esp\v6.1\esp-idf` and its
+Xtensa toolchain under `C:\Espressif\tools`. Direct WSL execution fails with
+`UtilBindVsockAnyPort`; no native Linux compiler/IDF is installed. Consulted
+Espressif's official v5.3.5 setup and Wokwi ESP-IDF docs, then added versioned
+WSL install commands plus a Windows PowerShell build attempt using the current
+WSL UNC project path. The Windows route remains unverified.
+
+### Probe current local runtime visibility
+
+Checked the sandbox process list for all three service entry points and probed
+ports 8000/8001 with curl. No matching process was visible in the sandbox and
+both requests failed while opening a socket (`Operation not permitted`), before
+HTTP. This cannot establish state in a separate user desktop session or expose
+its live telemetry.
+
+### Verify current Python prerequisite and shared firmware outputs
+
+The active WSL interpreter reports Python 3.14.4; the official ESP-IDF v5.3.5
+Linux guide specifies Python 3.8 or newer. Checked the current shared firmware
+build path: `flasher_args.json`, `cube_firmware.elf`, and
+`cube_firmware.bin` are all absent, so no build artifact has appeared here.
+
+### Guard Wokwi XIAO ESP32-S3 memory attributes
+
+Checked the existing diagram's 8 MB flash and 8 MB octal PSRAM values against
+Wokwi's official XIAO ESP32-S3/ESP32 configuration documentation. Extended
+the static emulation test to assert flash and PSRAM sizes remain within the
+documented model choices. The focused emulation and firmware source-contract
+suites pass 14/14. This does not build or boot firmware; the native C/ESP-IDF
+toolchain and Wokwi runtime remain unavailable. Reference: [Wokwi ESP32
+simulation guide](https://docs.wokwi.com/guides/esp32).
+
+### Refresh complete offline verification run
+
+Reran `./run_verification.sh` from the current Python_sim project. Full
+discovery passed 218/218 in 137 s, Python syntax compilation passed, and all
+six simulation/camera/axis report generators completed. Portable C and
+ESP-IDF stages reported explicit skips because their tools are missing.
+Separately reran `Verification.test_axis_control` (7/7 pass). Updated the
+operator report and handoff to replace the stale prior-run interruption note.
+No live sockets, browser, C binary, ESP-IDF firmware, Wokwi boot, or hardware
+was exercised.
+
+### Recheck Windows ESP-IDF access from WSL
+
+Confirmed `cc`, `gcc`, `clang`, `idf.py`, and `wokwi-cli` remain absent from the
+WSL PATH. The installed Windows `clang.exe` and `cmd.exe` both fail to start
+with `UtilBindVsockAnyPort`, so the ESP-IDF Windows cross-compiler remains
+inaccessible to this process. The native Windows PowerShell build route is
+already documented in the firmware README; this run did not change it or
+produce build artifacts.
+
+### Recheck live loopback capability
+
+Attempted to create/listen on the local simulation and Ground Station ports
+8000 and 8001. Socket creation was denied for both by the sandbox with
+`PermissionError: Operation not permitted`, before either service could start.
+This revalidates that the missing browser/API trial is an environment gate,
+not a diagnosed application connection failure.
+
+### Reconcile requirement and status reports with latest runner
+
+Audited the subsystem deliverable tree and found all seven expected
+descriptions. Updated stale completion notes in requirements traceability and
+the status report: the current full runner completed 218 Python tests, syntax
+compilation, and six report generators; C and ESP-IDF remain explicit tool
+skips. The socket-denied and Windows-interop limits are stated separately so
+they are not presented as application test results.
+
+### Confirm recorded publication of the NR snapshots
+
+Inspected the Python_sim Git repository after the user previously asked to
+upload both test-drive snapshots. Commit
+`e398cb19797eb065a299ce8f8222beeab96e1579` contains 125 tracked files for
+Test_drive_1 and 126 for Test_drive_2. The local Git reflog says
+`origin/main` was updated by push at 2026-10-17 01:16 +0100; `main` and the
+cached upstream ref are equal at that commit. A fresh `git push origin main`
+could not resolve `github.com`, so the current remote could not be rechecked.
+Uncommitted live workspace changes are outside this snapshot commit.

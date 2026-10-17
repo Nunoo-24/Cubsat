@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .camera_transport import MAX_ENCODED_BYTES, encode_rle_frame
 from .model import YawPlant, target_bearing_error
+from http_startup import open_http_server
 
 
 HOST = "127.0.0.1"
@@ -46,6 +47,7 @@ class Environment:
         self.plant = YawPlant()
         self.target_xyz_m = {"x": 0.0, "y": 0.0, "z": 2.0}
         self.target_scale = 0.1
+        self.camera_roll_marker_enabled = False
         self.external_torque_nm = {"x": 0.0, "y": 0.0, "z": 0.0}
         self.torque_until = 0.0
         self.body_torque_nm = 0.0
@@ -74,7 +76,8 @@ class Environment:
         if not isinstance(payload, dict):
             raise ValueError("control payload must be an object")
         allowed_fields = {"target_xyz_m", "target_scale", "external_torque_nm",
-                          "duration_s", "camera_occlusion_s"}
+                          "duration_s", "camera_occlusion_s",
+                          "camera_roll_marker_enabled"}
         unknown_fields = set(payload) - allowed_fields
         if unknown_fields:
             names = ", ".join(sorted(unknown_fields))
@@ -84,6 +87,7 @@ class Environment:
         with self.lock:
             new_point = None
             new_scale = None
+            new_camera_roll_marker_enabled = None
             new_torque = None
             torque_duration = None
             occlusion_duration = None
@@ -104,6 +108,11 @@ class Environment:
                 if not math.isfinite(scale) or not 0.001 <= scale <= 2.0:
                     raise ValueError("target_scale must be between 0.001 and 2 m")
                 new_scale = scale
+            if "camera_roll_marker_enabled" in payload:
+                value = payload["camera_roll_marker_enabled"]
+                if not isinstance(value, bool):
+                    raise ValueError("camera_roll_marker_enabled must be boolean")
+                new_camera_roll_marker_enabled = value
             if "external_torque_nm" in payload:
                 torque = payload["external_torque_nm"]
                 if not isinstance(torque, dict):
@@ -131,6 +140,8 @@ class Environment:
                 self.target_xyz_m = new_point
             if new_scale is not None:
                 self.target_scale = new_scale
+            if new_camera_roll_marker_enabled is not None:
+                self.camera_roll_marker_enabled = new_camera_roll_marker_enabled
             if new_torque is not None:
                 self.external_torque_nm = new_torque
                 self.torque_until = self.plant.time_s + torque_duration
@@ -175,8 +186,14 @@ class Environment:
             if in_view:
                 pixel_error = round(CAMERA_FOCAL_PX * math.tan(camera_error))
                 pixel_error_y = round(CAMERA_FOCAL_PX * camera_y / camera_z)
+            marker_visible = (
+                self.camera_roll_marker_enabled and in_view and
+                abs(camera_error) <= math.radians(24.0) and
+                abs(vertical_error) <= math.radians(20.0)
+            )
             camera_frame = self._render_camera_frame(
-                pixel_error, pixel_error_y, apparent_diameter_px
+                pixel_error, pixel_error_y, apparent_diameter_px,
+                marker_angle_rad=(-self.plant.roll_rad if marker_visible else None)
             )
             dark_pixel_area = camera_frame.count(12)
             visible = in_view and 50 <= dark_pixel_area <= 200
@@ -245,8 +262,9 @@ class Environment:
             }
 
     @staticmethod
-    def _render_camera_frame(pixel_error_x, pixel_error_y, apparent_diameter_px):
-        """Render a bright QVGA image with one dark target disk, if visible."""
+    def _render_camera_frame(pixel_error_x, pixel_error_y, apparent_diameter_px,
+                             marker_angle_rad=None):
+        """Render a bright QVGA scene with a dark point and optional roll fiducial."""
         pixels = bytearray([190] * (CAMERA_WIDTH_PX * CAMERA_HEIGHT_PX))
         if pixel_error_x is None or pixel_error_y is None:
             return bytes(pixels)
@@ -264,18 +282,46 @@ class Environment:
         min_y = max(0, math.floor(center_y - radius))
         max_y = min(CAMERA_HEIGHT_PX - 1, math.ceil(center_y + radius))
         dark_pixel = b"\x0c"
-        for y in range(min_y, max_y + 1):
-            vertical_squared = (y - center_y) ** 2
-            if vertical_squared > radius_squared:
-                continue
-            horizontal_reach = math.sqrt(radius_squared - vertical_squared)
-            start_x = max(min_x, math.ceil(center_x - horizontal_reach))
-            end_x = min(max_x, math.floor(center_x + horizontal_reach))
-            if start_x <= end_x:
-                row = y * CAMERA_WIDTH_PX
-                pixels[row + start_x:row + end_x + 1] = dark_pixel * (
-                    end_x - start_x + 1
-                )
+
+        def draw_disk(disk_x, disk_y, disk_radius):
+            x0 = max(0, math.floor(disk_x - disk_radius))
+            x1 = min(CAMERA_WIDTH_PX - 1, math.ceil(disk_x + disk_radius))
+            y0 = max(0, math.floor(disk_y - disk_radius))
+            y1 = min(CAMERA_HEIGHT_PX - 1, math.ceil(disk_y + disk_radius))
+            disk_radius_squared = disk_radius * disk_radius
+            for row_y in range(y0, y1 + 1):
+                vertical_squared = (row_y - disk_y) ** 2
+                if vertical_squared > disk_radius_squared:
+                    continue
+                reach = math.sqrt(disk_radius_squared - vertical_squared)
+                start_x = max(x0, math.ceil(disk_x - reach))
+                end_x = min(x1, math.floor(disk_x + reach))
+                if start_x <= end_x:
+                    row = row_y * CAMERA_WIDTH_PX
+                    pixels[row + start_x:row + end_x + 1] = dark_pixel * (end_x - start_x + 1)
+
+        if marker_angle_rad is None:
+            draw_disk(center_x, center_y, radius)
+        elif math.isfinite(marker_angle_rad) and radius >= 3.0:
+            # Simulated oriented fiducial: the central black point plus two
+            # separated satellites of different sizes. The unequal ends give
+            # the image a directed angle; their weighted pattern centroid is
+            # centered on the nominal point. Marker scale is relative to the
+            # point diameter and remains within the detector's area bound.
+            small_radius = max(0.8, radius * 0.32)
+            large_radius = max(1.0, radius * 0.46)
+            offset = radius * 1.55
+            cosine, sine = math.cos(marker_angle_rad), math.sin(marker_angle_rad)
+            center_correction = (large_radius ** 2 - small_radius ** 2) * offset / radius ** 2
+            disk_x = center_x + center_correction * cosine
+            disk_y = center_y + center_correction * sine
+            draw_disk(disk_x, disk_y, radius)
+            draw_disk(center_x + offset * cosine, center_y + offset * sine,
+                      small_radius)
+            draw_disk(center_x - offset * cosine, center_y - offset * sine,
+                      large_radius)
+        else:
+            draw_disk(center_x, center_y, radius)
         return bytes(pixels)
 
     def camera_frame_snapshot(self, sequence):
@@ -317,8 +363,12 @@ class Environment:
                     f"virtual {axis} torque must be finite and within "
                     f"±{axis_limits[axis]:.2f} N m")
             axis_torques[axis] = float(value)
-        if raw_axis_torques and payload.get("source") != "cubesat_sil":
-            raise ValueError("virtual axis torques are reserved for host SIL")
+        virtual_axis_source = payload.get("source") == "cubesat_sil" or (
+            payload.get("source") == "cubesat_esp32" and
+            payload.get("camera_frame_source") == "simulated"
+        )
+        if raw_axis_torques and not virtual_axis_source:
+            raise ValueError("virtual axis torques require a host-SIL or simulated ESP32 source")
         if speed_target is not None and any(axis_torques.values()):
             raise ValueError("speed test and virtual axis torque cannot be active together")
         ack = (self._parse_ack(payload["command_ack"])
@@ -621,6 +671,7 @@ class Environment:
                 "pitch_rate_rad_s": self.plant.pitch_rate_rad_s,
                 "target_xyz_m": dict(self.target_xyz_m),
                 "target_scale_m": self.target_scale,
+                "camera_roll_marker_enabled": self.camera_roll_marker_enabled,
                 "target_bearing_rad": bearing,
                 "target_error_rad": target_bearing_error(
                     bearing, self.plant.yaw_rad
@@ -814,12 +865,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    server = open_http_server(
+        ThreadingHTTPServer, (HOST, PORT), Handler, "Simulation Environment"
+    )
     stop_event = threading.Event()
     model_thread = threading.Thread(
         target=environment.run, args=(stop_event,), daemon=True
     )
     model_thread.start()
-    server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Simulation environment: http://{HOST}:{PORT}")
     print("Three-axis gimbal plant: yaw wheel plus host-SIL virtual pitch/roll control.")
     try:

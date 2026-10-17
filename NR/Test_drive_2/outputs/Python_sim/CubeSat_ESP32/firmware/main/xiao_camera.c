@@ -4,10 +4,13 @@
 
 #include <string.h>
 
+#include "sdkconfig.h"
 #include "esp_camera.h"
+#if CONFIG_CAMERA_AF_SUPPORT
+#include "esp_camera_af.h"
+#endif
 #include "esp_log.h"
 #include "esp_timer.h"
-#include "sdkconfig.h"
 
 #define CAMERA_WIDTH_PX 320u
 #define CAMERA_HEIGHT_PX 240u
@@ -54,6 +57,48 @@ bool cube_xiao_camera_init(void)
         ESP_LOGE(TAG, "Camera initialization failed: %s", esp_err_to_name(result));
         return false;
     }
+
+    sensor_t *sensor = esp_camera_sensor_get();
+    if (sensor == NULL) {
+        ESP_LOGE(TAG, "Camera sensor handle is unavailable");
+        esp_camera_deinit();
+        return false;
+    }
+    if (sensor->id.PID == OV5640_PID) {
+#if CONFIG_CAMERA_AF_SUPPORT
+        if (!esp_camera_af_is_supported(sensor)) {
+            ESP_LOGE(TAG, "OV5640 autofocus is unavailable; refusing unfocused camera");
+            esp_camera_deinit();
+            return false;
+        }
+        const esp_camera_af_config_t autofocus = {
+            .mode = ESP_CAMERA_AF_MODE_AUTO,
+            .timeout_ms = 10000,
+        };
+        esp_err_t af_result = esp_camera_af_init(sensor, &autofocus);
+        esp_camera_af_status_t af_status = {0};
+        if (af_result == ESP_OK) {
+            af_result = esp_camera_af_wait(sensor, autofocus.timeout_ms, &af_status);
+        }
+        if (af_result != ESP_OK || !af_status.focused) {
+            ESP_LOGE(TAG, "OV5640 autofocus failed: %s (focused=%d)",
+                     esp_err_to_name(af_result), af_status.focused);
+            esp_camera_deinit();
+            return false;
+        }
+        ESP_LOGI(TAG, "OV5640 autofocus initialized and focused");
+#else
+        ESP_LOGE(TAG, "OV5640 requires CONFIG_CAMERA_AF_SUPPORT; refusing unfocused camera");
+        esp_camera_deinit();
+        return false;
+#endif
+    } else if (sensor->id.PID == OV3660_PID) {
+        ESP_LOGI(TAG, "OV3660 fixed-focus camera detected");
+    } else {
+        ESP_LOGE(TAG, "Unsupported camera sensor PID 0x%04x", sensor->id.PID);
+        esp_camera_deinit();
+        return false;
+    }
     ESP_LOGI(TAG, "Grayscale QVGA camera initialized");
     return true;
 }
@@ -92,7 +137,8 @@ bool cube_xiao_camera_observe(cube_camera_observation_t *observation)
             .max_dark_pixels = CONFIG_CUBESAT_CAMERA_MAX_DARK_PIXELS,
         };
         cube_target_detection_t result;
-        success = cube_detect_black_target(frame->buf, frame->width, frame->height,
+        success = cube_detect_black_target(frame->buf, frame->len,
+                                           frame->width, frame->height,
                                            frame->width, &detector, &result);
         for (unsigned y = 0; y < PREVIEW_HEIGHT_PX; ++y) {
             for (unsigned x = 0; x < PREVIEW_WIDTH_PX; ++x) {
@@ -110,6 +156,8 @@ bool cube_xiao_camera_observe(cube_camera_observation_t *observation)
             observation->valid = result.valid;
             observation->error_x_px = result.error_x_px;
             observation->error_y_px = result.error_y_px;
+            observation->roll_orientation_valid = result.roll_orientation_valid;
+            observation->roll_orientation_rad = result.roll_orientation_rad;
         }
     }
     esp_camera_fb_return(frame);

@@ -77,6 +77,25 @@ config CUBESAT_LIS3MDL_ADDRESS_1E
 
 endchoice
 
+choice CUBESAT_LIS3MDL_FULL_SCALE
+    prompt "LIS3MDL magnetic measurement range"
+    default CUBESAT_LIS3MDL_FS_4G
+    depends on CUBESAT_LIS3MDL_ENABLED
+
+config CUBESAT_LIS3MDL_FS_4G
+    bool "±4 gauss"
+
+config CUBESAT_LIS3MDL_FS_8G
+    bool "±8 gauss"
+
+config CUBESAT_LIS3MDL_FS_12G
+    bool "±12 gauss"
+
+config CUBESAT_LIS3MDL_FS_16G
+    bool "±16 gauss"
+
+endchoice
+
 config CUBESAT_MOTEUS_ENABLED
     bool "Enable the physical moteus reaction-wheel adapter"
     default n

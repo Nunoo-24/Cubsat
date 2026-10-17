@@ -1,6 +1,6 @@
 # AE project
 
-Follow `/home/nunot/Mestrado_Codex/README.md` and read `Context/HANDOFF.md` before continuing work.
+Follow `../README.md` and read `Context/HANDOFF.md` before continuing work.
 
 ## Current workspace
 
@@ -29,10 +29,16 @@ Follow `/home/nunot/Mestrado_Codex/README.md` and read `Context/HANDOFF.md` befo
   range, horizontal/vertical bearing sweep plus five combined body poses through rendered camera frames and the onboard detector.
 - `outputs/Verification/Camera_Detector_Timing_Results.md` — reproducible
   host-only QVGA detector timing on ordinary and dense synthetic frames.
+- `outputs/Verification/Axis_Control_Results.md` — host-SIL stabilization and
+  camera-pointing checks for yaw, pitch, and roll, with point-only fallback
+  and firmware/emulation limits recorded.
 - `outputs/Verification/Requirements_Traceability.md` — requirement-by-requirement
   implementation status, evidence, and remaining verification gates.
 - `outputs/reports/AE_Project_Status_and_Run_Guide.md` — full status report with
   current run commands, completed work, verification limits, and remaining tasks.
+- `outputs/reports/AE_Project_Current_State_Report_2026-10-17.md` — fresh
+  resume report recording the latest full verification run, current evidence,
+  open gates, and context-reading limits.
 - `references/Hardware_and_Emulation_Notes.md` — initial manufacturer/emulator research and source links.
 - `Context/AI_USAGE_LOG.md` — record of AI assistance for project work.
 
@@ -40,9 +46,12 @@ Follow `/home/nunot/Mestrado_Codex/README.md` and read `Context/HANDOFF.md` befo
 
 Build and demonstrate a CubeSat-style autonomous attitude-control system. The
 physical demonstrator currently specifies active yaw control with a reaction
-wheel. The host simulation now demonstrates camera pointing across yaw and
-pitch, gravity-based roll leveling through virtual simulated torques, and
-Y-axis gyro damping when visual yaw tracking loses the target.
+wheel. The host simulation demonstrates camera pointing across yaw, pitch, and roll
+using image position plus an optional asymmetric target marker; featureless
+points use gravity-based roll fallback. The ESP32/Wokwi source has the same
+virtual-axis path for simulator-framed images, while physical motor actuation
+remains yaw-only. The marker toggle is disabled by default to preserve the
+supplied point-target setup.
 The XIAO ESP32-S3 performs onboard camera/image
 processing, sensor processing, control, and reaction-wheel commands. The PC
 ground station supervises and records telemetry but is not in the autonomous
@@ -78,22 +87,25 @@ The three launchers start the environment, host CubeSat SIL, and Ground Station
 in separate WSL terminal windows. From Windows, run
 `outputs/Python_sim/Launchers/Install_Desktop_Shortcuts.bat` once to create
 three desktop icons. They are script launchers, not compiled `.exe` files.
+The environment and Ground Station launchers wait for the matching page to
+respond through Windows localhost before opening a browser; a 45-second
+timeout leaves the error visible for diagnosis.
 
 Run the integrated simulation from WSL by starting each process in its own
 terminal, in this order (plant, host SIL, Ground Station):
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd outputs/Python_sim
 python3 -m Sim_Environment.main
 ```
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd outputs/Python_sim
 python3 -m CubeSat_ESP32.sil
 ```
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd outputs/Python_sim
 python3 -m Ground_Station.main
 ```
 
@@ -111,7 +123,7 @@ sockets, browser rendering, Wokwi, or physical hardware. For a focused Python
 unit-test run, use:
 
 ```bash
-python3 -m unittest Sim_Environment.test_model Sim_Environment.test_environment Sim_Environment.test_camera_transport CubeSat_ESP32.test_attitude CubeSat_ESP32.test_control CubeSat_ESP32.test_camera CubeSat_ESP32.test_moteus_protocol Ground_Station.test_main Verification.test_evaluate_scenarios Verification.test_speed_test_integration Verification.test_camera_transport_evaluation Verification.test_camera_image_noise Verification.test_camera_geometry Verification.test_camera_detector_timing Verification.test_ui_contracts Verification.test_emulation_config Verification.test_firmware_source_contracts
+python3 -m unittest Sim_Environment.test_model Sim_Environment.test_environment Sim_Environment.test_camera_transport CubeSat_ESP32.test_attitude CubeSat_ESP32.test_sil_runtime CubeSat_ESP32.test_control CubeSat_ESP32.test_camera CubeSat_ESP32.test_moteus_protocol Ground_Station.test_main Verification.test_evaluate_scenarios Verification.test_speed_test_integration Verification.test_camera_transport_evaluation Verification.test_camera_image_noise Verification.test_camera_geometry Verification.test_camera_detector_timing Verification.test_ui_contracts Verification.test_emulation_config Verification.test_firmware_source_contracts Verification.test_axis_control Verification.test_http_startup
 ```
 
 The legacy Level 0 Ground Station and heartbeat simulator commands, ESP-IDF

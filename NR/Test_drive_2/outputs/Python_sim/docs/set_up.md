@@ -10,30 +10,34 @@ Open three WSL terminals in the Python_sim root. Start one process in each
 terminal, in this order:
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim
 python3 -m Sim_Environment.main
 ```
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim
 python3 -m CubeSat_ESP32.sil
 ```
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim
 python3 -m Ground_Station.main
 ```
 
 Open the simulation UI at `http://127.0.0.1:8000` and the Ground Station at
 `http://127.0.0.1:8001`. The Ground Station CSV log is written to
 `Ground_Station/logs/telemetry.csv`. The simulator applies XYZ disturbance
-torques to pitch/yaw/roll respectively as X=pitch, Y=yaw, Z=roll. Roll/pitch
-are simplified pendulum models; only yaw is actively controlled.
+torques to pitch/yaw/roll respectively as X=pitch, Y=yaw, Z=roll. Host SIL
+actively stabilizes and points on all three axes: yaw uses the reaction-wheel
+model, while pitch and roll use bounded virtual plant torques. ESP32/Wokwi
+firmware can apply those virtual torques only for simulator-framed camera data.
+These are simulation inputs; the currently specified physical reaction-wheel
+output is yaw-only.
 
 ## Model, bridge, and interface checks
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim
 python3 -m unittest Sim_Environment.test_model Sim_Environment.test_environment CubeSat_ESP32.test_control CubeSat_ESP32.test_camera Ground_Station.test_main
 ```
 
@@ -53,7 +57,7 @@ Set `CUBESAT_WIFI_SSID`, `CUBESAT_WIFI_PASSWORD`, and
 `http://host.wokwi.internal:8000`, with Wokwi's private IoT gateway enabled.
 
 ```bash
-cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim/CubeSat_ESP32/firmware
+cd /home/nunot/Mestrado_Codex/AE/outputs/Python_sim/CubeSat_ESP32/firmware
 idf.py set-target esp32s3
 idf.py build
 ```

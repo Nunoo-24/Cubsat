@@ -7,8 +7,9 @@ README, and context handoff. Run the commands from that snapshot's
 
 - [`Test_drive_1/`](Test_drive_1/README.md) — first full-direction test state
   (190 Python tests; original stronger roll tuning; baseline yaw-rate gain).
-- [`Test_drive_2/`](Test_drive_2/README.md) — current state (191 Python tests;
-  separate stronger IMU yaw damping after target loss; moderated roll tuning).
+- [`Test_drive_2/`](Test_drive_2/README.md) — refreshed 17 October 2026 state
+  (218 Python tests; three-axis host-SIL camera pointing with optional roll
+  marker; current verification and context reports included).
 
 These are source snapshots inside the existing Git repository, not separate
 Git repositories or GitHub branches. The live workspace's existing Git history

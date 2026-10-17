@@ -2,9 +2,34 @@
 
 **Role:** capture an image, threshold dark pixels, locate the target centroid, convert image-plane errors to target bearings, and expose a low-rate thumbnail to the operator when the physical camera is enabled.
 
-**Input:** image frames from the environment or XIAO Sense OV camera. The environment synthesizes a bright QVGA scene with a dark disk using target geometry, attitude, visibility, and occlusion. Host SIL fetches the frame paired to its observation and runs the Python centroid detector before control; default Wokwi firmware fetches it and runs the portable C detector. Both report the frame sequence. The physical camera profile processes a local frame. **Onboard output:** validity, horizontal and vertical centroid offsets, and calibrated focal length. Host SIL uses horizontal error for yaw and vertical error for pitch; physical firmware currently uses horizontal error for yaw only. Telemetry uses image coordinates: positive X is right and positive Y is down. **Ground output:** 64x48 thumbnail averaged from the same detected frame, with matching X/Y error. A missing physical frame stays unavailable; only an explicitly simulator-sourced sequence can select a synthetic preview.
+**Input:** image frames from the environment or XIAO Sense OV camera. The environment synthesizes a bright QVGA scene with a dark point and optional asymmetric orientation fiducial using target geometry, attitude, visibility, and occlusion. Host SIL fetches the frame paired to its observation and runs the Python centroid detector before control; default Wokwi firmware fetches it and runs the portable C detector. Both report the frame sequence. The physical camera profile processes a local frame. **Onboard output:** validity, horizontal and vertical centroid offsets, optional directed target image orientation, and calibrated focal length. Host SIL uses horizontal error for yaw, vertical error for pitch, and the marker orientation for roll. The portable C detector also estimates marker orientation; ESP-IDF emits it in telemetry and uses it for virtual roll control only when processing a simulator frame. Physical actuation remains yaw-only. Telemetry uses image coordinates: positive X is right and positive Y is down. **Ground output:** 64x48 thumbnail averaged from the same detected frame, with matching X/Y error. A missing physical frame stays unavailable; only an explicitly simulator-sourced sequence can select a synthetic preview.
+
+The C detector's Y offset is positive downward. Firmware converts it to
+`atan(error_y_px / focal_length_px)` before pitch control, matching the host
+SIL's positive-pitch feedback sign. Source contracts check this conversion;
+the portable C controller test also checks positive camera error produces
+positive pitch torque. This boundary is important because the environment's
+analytic Y coordinate uses positive up while raster rows increase down.
 
 **Implementation:** [Python reference](../../Python_sim/CubeSat_ESP32/camera.py), [lossless simulator frame codec](../../Python_sim/Sim_Environment/camera_transport.py); firmware RLE1 decoder, detector and XIAO adapter: `../../Python_sim/CubeSat_ESP32/firmware/main/black_target.c` and `xiao_camera.c`.
+
+**Physical focus:** XIAO Sense boards may have OV3660 or OV5640 modules. The
+firmware uses the sensor PID: OV5640 must support and complete Espressif
+autofocus (10 s timeout and an explicit focused status) or physical camera
+startup is rejected; OV3660 follows a fixed-focus path, and unknown sensor
+variants are rejected. The
+managed `esp32-camera` component is pinned to compatible range `^2.1.8`, and
+`CONFIG_CAMERA_AF_SUPPORT=y` is in the project defaults. See the [Seeed
+camera guide](https://wiki.seeedstudio.com/xiao_esp32s3_camera_usage/) and
+[Espressif component/API notes](https://components.espressif.com/components/espressif/esp32-camera/versions/2.1.8/readme).
+
+**Firmware frame boundary:** the portable C detector supports rasters up to
+640×480 pixels and row strides up to 640 bytes. Its API requires callers to
+pass the accessible grayscale buffer length and rejects any frame shorter than
+`stride × height` before reading pixels. The physical camera adapter passes the
+driver's `frame->len`; the simulator passes the static QVGA array size. C test
+source covers a truncated frame, but the host C suite has not run because this
+workspace has no C compiler.
 
 **Initial detector settings:** both paths use threshold 40 and accept 50–200 dark pixels. The Python reference now rejects thresholds outside 0–255 and area limits larger than the image, matching the portable C API. These settings are demonstrator values and need calibration on actual camera frames.
 
@@ -13,6 +38,20 @@
 **Target size/range envelope:** [the synthetic geometry sweep](../../Verification/Camera_Geometry_Results.md) tests four target diameters, four depths, three horizontal bearings, and three vertical bearings against actual rendered frames and the onboard detector. It records raw/coherent pixel counts, checks renderer/detector validity parity, and compares horizontal/vertical image errors with their coordinate signs. Five extra combined body poses verify the raster detector against the analytic camera reference with zero pixel discrepancy in both axes at those samples. This is an assumed focal length, a 60°×46.9° nominal field of view, one camera-facing disk, and ideal background; it does not define a hardware operating envelope.
 
 **Projection check:** five combined roll/pitch/yaw poses match an independently assembled rigid-body rotation matrix with zero rounded-pixel discrepancy in X and Y. This verifies the simulated coordinate transforms, not lens intrinsics or physical camera alignment.
+
+**Closed-loop axes:** host SIL has verified camera-centering commands on yaw
+(image X), pitch (image Y), and roll (directed orientation of the asymmetric
+marker). The directed-marker roll loop was tested from both +15° and −15°
+with the accelerometer roll cue intentionally hidden. It settled to 0.152° /
+−0.073°/s in 8.32 s and −0.417° / −0.013°/s in 9.16 s, respectively.
+Featureless point-only frames return no orientation and use gravity-derived IMU
+leveling. The optional
+simulator marker is a project design addition; the physical poster must include
+an equivalent resolvable asymmetric feature before visual roll control is
+available. The portable C detector reports directed marker angle, and the C
+firmware sends virtual pitch/roll torque only for a simulator-sourced frame;
+physical motor actuation is still yaw-only. See
+[`Axis_Control_Results.md`](../../Verification/Axis_Control_Results.md).
 
 **Detector geometry check:** the default 0.1 m synthetic disk at 2 m remains detectable across 13 bearings from -30° to +30° in 5° steps. The detector centroid differs from the environment's analytic pixel error by at most 2.91 px because the rasterized disk is clipped at the FOV boundary. This is an ideal scene check, not detection-rate, latency, or hardware evidence. Target scales and ranges outside this baseline may fall below the 50-pixel minimum or exceed the 200-pixel maximum; tune those settings against the actual poster and camera.
 

@@ -21,12 +21,34 @@
 #define LIS3MDL_TIMEOUT_MS 100
 #define LIS3MDL_ODR_PERIOD_US 12500
 #define LIS3MDL_MAX_SAMPLE_AGE_US 100000
+
+#if CONFIG_CUBESAT_LIS3MDL_FS_8G
+#define LIS3MDL_CTRL_REG2_FS 0x20u
+#define LIS3MDL_RANGE_G 8u
+#define LIS3MDL_MICROTESLA_PER_LSB (100.0f / 3421.0f)
+#elif CONFIG_CUBESAT_LIS3MDL_FS_12G
+#define LIS3MDL_CTRL_REG2_FS 0x40u
+#define LIS3MDL_RANGE_G 12u
+#define LIS3MDL_MICROTESLA_PER_LSB (100.0f / 2281.0f)
+#elif CONFIG_CUBESAT_LIS3MDL_FS_16G
+#define LIS3MDL_CTRL_REG2_FS 0x60u
+#define LIS3MDL_RANGE_G 16u
+#define LIS3MDL_MICROTESLA_PER_LSB (100.0f / 1711.0f)
+#else
+#define LIS3MDL_CTRL_REG2_FS 0x00u
+#define LIS3MDL_RANGE_G 4u
 #define LIS3MDL_MICROTESLA_PER_LSB (100.0f / 6842.0f)
+#endif
 
 static const char *TAG = "CUBESAT_LIS3MDL";
 static i2c_master_dev_handle_t device_handle;
 static cube_lis3mdl_sample_t latest_sample;
 static bool have_sample;
+
+uint8_t cube_lis3mdl_full_scale_gauss(void)
+{
+    return (uint8_t)LIS3MDL_RANGE_G;
+}
 
 static bool write_register(uint8_t reg, uint8_t value)
 {
@@ -76,16 +98,17 @@ bool cube_lis3mdl_init(void)
         return false;
     }
 
-    /* 80 Hz, high XY/Z performance, continuous conversion, ±4 gauss, BDU. */
+    /* 80 Hz, high XY/Z performance, continuous conversion, selected FS, BDU. */
     if (!write_register(LIS3MDL_CTRL_REG1, 0xFCu) ||
-        !write_register(LIS3MDL_CTRL_REG2, 0x00u) ||
+        !write_register(LIS3MDL_CTRL_REG2, LIS3MDL_CTRL_REG2_FS) ||
         !write_register(LIS3MDL_CTRL_REG3, 0x00u) ||
         !write_register(LIS3MDL_CTRL_REG4, 0x0Cu) ||
         !write_register(LIS3MDL_CTRL_REG5, 0x40u)) {
         ESP_LOGE(TAG, "LIS3MDL configuration failed");
         return false;
     }
-    ESP_LOGI(TAG, "LIS3MDL ready at I2C address 0x%02x", address);
+    ESP_LOGI(TAG, "LIS3MDL ready at I2C address 0x%02x, range +/- %u G",
+             address, LIS3MDL_RANGE_G);
     return true;
 }
 

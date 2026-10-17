@@ -35,6 +35,7 @@
         Acceleration XYZ (m/s²): <strong id="accelXYZ">—</strong><br>
         Estimated yaw: <strong id="yawEstimate">—</strong> · <span id="yawEstimateSource">invalid</span><br>
         Accelerometer tilt estimate pitch/roll: <strong id="tiltEstimate">—</strong><br>
+        Camera marker angle / roll estimate: <strong id="cameraRollEstimate">—</strong> · source <strong id="rollReferenceSource">—</strong><br>
         Magnetometer XYZ (µT): <strong id="magXYZ">—</strong> · <span id="magHealth">—</span></p>
       <p>Sim time: <strong id="simTime">—</strong> · Requested body torque yaw/pitch/roll: <strong id="torque">—</strong><br>
         Simulated applied torque yaw/pitch/roll: <strong id="simTorque">—</strong> · Simulated wheel: <strong id="wheelState">—</strong><br>
@@ -95,10 +96,17 @@ async function refresh() {
     document.getElementById('yawEstimateSource').textContent = t.yaw_estimate_source || 'invalid';
     document.getElementById('tiltEstimate').textContent = Number.isFinite(t.pitch_estimate_rad) && Number.isFinite(t.roll_estimate_rad)
       ? `${deg(t.pitch_estimate_rad)} / ${deg(t.roll_estimate_rad)}` : 'invalid';
+    const markerAngle = Number.isFinite(t.camera_roll_orientation_rad) ? deg(t.camera_roll_orientation_rad) : '—';
+    const cameraRoll = Number.isFinite(t.camera_roll_estimate_rad) ? deg(t.camera_roll_estimate_rad) : '—';
+    document.getElementById('cameraRollEstimate').textContent = `${markerAngle}° / ${cameraRoll}°`;
+    document.getElementById('rollReferenceSource').textContent = t.roll_reference_source || 'unavailable';
     document.getElementById('yawStepTelemetry').textContent =
       `Yaw step: ${t.yaw_step_status || 'idle'} · target ${Number.isFinite(t.yaw_step_target_rad) ? deg(t.yaw_step_target_rad) : '—'} · error ${Number.isFinite(t.yaw_step_error_rad) ? deg(t.yaw_step_error_rad) : '—'}`;
+    const magRange = Number.isFinite(t.mag_full_scale_gauss)
+      ? ` · ±${Number(t.mag_full_scale_gauss).toFixed(0)} G` : '';
     document.getElementById('magHealth').textContent = t.mag_valid === true
-      ? `${t.mag_frame || 'frame unknown'} · telemetry only` : 'not available';
+      ? `${t.mag_frame || 'frame unknown'} · telemetry only${magRange}`
+      : `not available${magRange}`;
     document.getElementById('magXYZ').textContent = t.mag_valid === true
       ? [t.mag_x_uT, t.mag_y_uT, t.mag_z_uT].map(v => Number(v).toFixed(1)).join(', ') : '—';
     document.getElementById('simTime').textContent = Number(t.simulation_time_s).toFixed(2) + ' s';

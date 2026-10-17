@@ -10,6 +10,7 @@ import threading
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from http_startup import open_http_server
 
 
 HOST = "127.0.0.1"
@@ -24,13 +25,16 @@ LOG_FIELDS = ["ground_sequence", "sequence", "simulation_time_s", "mode",
               "camera_frame_source",
               "camera_focal_length_x_px",
               "camera_error_y_rad", "pitch_estimate_rad", "roll_estimate_rad",
+              "camera_roll_orientation_rad", "camera_roll_estimate_rad",
+              "roll_reference_source",
               "virtual_axis_torque_nm",
               "gyro_x_rad_s", "gyro_y_rad_s",
               "gyro_z_rad_s", "yaw_rate_rad_s", "accel_x_m_s2", "accel_y_m_s2", "accel_z_m_s2",
               "yaw_estimate_rad", "yaw_estimate_valid", "yaw_estimate_source",
               "yaw_step_target_rad", "yaw_step_error_rad", "yaw_step_status",
               "yaw_step_elapsed_s",
-              "mag_valid", "mag_frame", "mag_age_s", "mag_x_uT", "mag_y_uT", "mag_z_uT",
+              "mag_valid", "mag_frame", "mag_full_scale_gauss", "mag_age_s",
+              "mag_x_uT", "mag_y_uT", "mag_z_uT",
               "camera_age_s", "imu_age_s", "body_torque_nm",
               "pitch_body_torque_nm", "roll_body_torque_nm",
               "simulated_body_torque_nm", "simulated_wheel_motor_torque_nm",
@@ -229,7 +233,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    server = ThreadingHTTPServer((HOST, PORT), Handler)
+    server = open_http_server(
+        ThreadingHTTPServer, (HOST, PORT), Handler, "Ground Station"
+    )
     print(f"Ground Station: http://{HOST}:{PORT}")
     print(f"Simulation bridge: {ENV_URL}")
     print(f"Telemetry CSV: {LOG_PATH}")

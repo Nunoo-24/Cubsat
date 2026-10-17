@@ -1,6 +1,6 @@
 # Simulation bridge HTTP API
 
-**Revision:** 1.1  
+**Revision:** 1.2  
 **Base URL:** `http://127.0.0.1:8000`  
 **Purpose:** local software-in-the-loop and Wokwi bridge  
 **Physical radio protocol:** not selected
@@ -13,15 +13,16 @@ Wokwi reaches the host service through its private gateway.
 ## Environment control
 
 `GET /api/state` returns simulated roll, pitch, and yaw angles/rates, target,
-requested and actual body torque, wheel speed/torque/saturation state, and
-actuator freshness. Scene XYZ maps to body rotation axes X=pitch, Y=yaw, and
-Z=roll. The model has decoupled axes; yaw is driven by the provisional
-reaction-wheel model. In host SIL, image Y error commands bounded virtual
-pitch torque and accelerometer-derived roll commands bounded virtual leveling
-torque. The bridge accepts these virtual fields only from `cubesat_sil` in
-`virtual_axis_torque_nm`; they are not mapped to physical actuators. A point
-target cannot reveal rotation about the camera boresight, so roll is leveled
-using simulated gravity direction. Wheel and virtual actuator parameters are
+requested and actual body torque, wheel speed/torque/saturation state,
+actuator freshness, and `camera_roll_marker_enabled`. Scene XYZ maps to body
+rotation axes X=pitch, Y=yaw, and Z=roll. The model has decoupled axes; yaw is
+driven by the provisional reaction-wheel model. Host SIL and ESP32/Wokwi use
+image X for yaw, image Y for pitch, and a directed target-marker image angle
+for roll. The asymmetric marker is optional and disabled by default to preserve
+the original point-target scenario. Point-only frames use gravity-derived roll
+leveling. Virtual pitch/roll torque is accepted from `cubesat_sil`, or from
+`cubesat_esp32` only when `camera_frame_source` is `simulated`; it is not
+mapped to physical actuators. Wheel and virtual actuator parameters are
 provisional.
 `POST /api/control` changes scene parameters. The request body is UTF-8 JSON,
 maximum 4096 bytes:
@@ -32,7 +33,8 @@ maximum 4096 bytes:
   "target_scale": 0.1,
   "external_torque_nm": {"x": 0.0, "y": 0.0, "z": 0.01},
   "duration_s": 1.0,
-  "camera_occlusion_s": 2.0
+  "camera_occlusion_s": 2.0,
+  "camera_roll_marker_enabled": false
 }
 ```
 
@@ -40,7 +42,7 @@ Target coordinates use the scene frame (X right, Y up, Z forward) and scale is
 metres. `z` must be positive; scale range is
 0.001–2 m. External torque components are limited to ±1 N·m, duration to 0–60
 s. In the body model frame, X torque drives pitch, Y drives yaw, and Z drives
-roll. Camera occlusion duration is 0–60 s. The bridge validates all provided
+roll. Camera occlusion duration is 0–60 s. `camera_roll_marker_enabled` must be a boolean and toggles the synthetic directed orientation pattern in rendered camera frames. The bridge validates all provided
 fields before committing any of them; an invalid field returns HTTP 400 and
 leaves the scene state unchanged. Unknown fields are rejected, and
 `duration_s` is valid only with `external_torque_nm`.
@@ -183,11 +185,11 @@ against an independently assembled rigid-body rotation matrix; this does not
 calibrate focal length, lens distortion, or camera mounting.
 Environment `pixel_error_y` is positive up in the body-view convention. Onboard
 telemetry `camera_error_y_px` is positive down, matching row direction in the
-captured image; the host SIL converts this sign. Host SIL uses horizontal
-error for yaw and vertical error for pitch. Roll leveling uses gravity
-direction because a single point target does not constrain camera-boresight
-rotation. These additional axes are host simulation behavior, not a claim of
-three-axis physical actuation.
+captured image; the onboard controller converts this sign. Host SIL uses
+horizontal error for yaw, vertical error for pitch, and directed marker angle
+for roll. A featureless point has no roll cue and uses gravity-derived leveling.
+The C/Wokwi firmware sends virtual pitch/roll torque only for simulator-framed
+camera observations. The physical actuator profile remains yaw-only.
 The onboard control law converts pixel error to bearing as
 `atan(pixel_error_x / focal_length_x_px)`. Positive pixel error is positive
 target bearing under the current image/body sign convention; calibrate that
@@ -227,6 +229,7 @@ An actuator packet is posted to `POST /api/actuator`:
   "accel_z_m_s2": 0.0,
   "mag_valid": true,
   "mag_frame": "body",
+  "mag_full_scale_gauss": null,
   "mag_age_s": 0.01,
   "mag_x_uT": 20.0,
   "mag_y_uT": 0.0,
@@ -254,15 +257,14 @@ current/thermal limits, and CAN-FD are not simulated. `/api/telemetry` adds
 Ground Station only. A command not refreshed for 100 ms is
 set to zero by the simulation watchdog. This watchdog is for the simulation
 bridge; physical actuator safety must be implemented and verified onboard.
-Host Python SIL may additionally include `virtual_axis_torque_nm` with
-`pitch` limited to ±0.02 N·m and `roll` limited to ±0.035 N·m. Roll gains and
-authority are halfway between the previous and stronger settings; this softer
-tuning peaks below 11° and settles a 0.05 N·m, 0.5 s Z disturbance within
-three simulated seconds.
+Host Python SIL and the ESP32/Wokwi path may include
+`virtual_axis_torque_nm` with `pitch` limited to ±0.02 N·m and `roll` limited
+to ±0.035 N·m. Roll gains and authority remain the moderated values.
 Yaw uses the Y-axis gyro for rate damping, including the IMU-only lost-target
-mode. The bridge accepts these only when `source` is `cubesat_sil`;
-they drive ideal pitch/roll body torques in the simulated plant and are not
-physical actuator commands. The
+mode. The bridge accepts virtual torques from `source=cubesat_sil`, or from
+`source=cubesat_esp32` only when `camera_frame_source=simulated`. Physical
+camera firmware can report orientation but cannot command the simulated ideal
+axes. These torques are not physical actuator commands. The
 environment canvas draws the body reference frame at the cube center: X red
 (pitch), Y green (yaw), Z blue (roll/camera boresight).
 When the optional physical moteus adapter is enabled in ESP-IDF, its
@@ -276,7 +278,10 @@ physical LIS3MDL readings until a mounting transform is configured. When either
 physical MPU-6050 or LIS3MDL profile is enabled, firmware suppresses magnetic
 correction in the yaw estimator because the sensor frame/calibration is not
 established; it may still forward bridge magnetic values for display when the
-LIS3MDL adapter is off.
+LIS3MDL adapter is off. `mag_full_scale_gauss` reports the selected physical
+LIS3MDL range (4, 8, 12, or 16) when that adapter is enabled, including when
+the sensor sample is invalid; it is JSON `null` for synthetic data because the
+simulated field has no hardware ADC range.
 The host SIL fuses only the known synthetic reference field. `yaw_estimate_*`
 reports the one-axis estimate, its validity, and either `MAG_FUSED`,
 `GYRO_ONLY`, or `INVALID`; a gyro-only result is relative to the initialization

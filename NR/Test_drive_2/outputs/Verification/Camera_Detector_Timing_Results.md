@@ -1,6 +1,6 @@
 # Host Python Camera Detector Timing
 
-Generated: 2026-10-16 23:45:21 UTC
+Generated: 2026-10-17 11:07:05 UTC
 
 This measures only the Python QVGA pixel detector on this host. It
 excludes frame transfer, HTTP, sensor reads, control calculations,
@@ -17,13 +17,13 @@ time with that period as a rough budget reference, not a real-time pass.
 
 | Frame case | Median (ms) | p95 (ms) | Maximum (ms) |
 |---|---:|---:|---:|
-| clean target | 2.002 | 3.769 | 3.952 |
-| σ=40 target | 2.020 | 3.110 | 3.962 |
-| σ=50 target | 3.641 | 12.822 | 14.498 |
-| blank scene | 2.143 | 4.054 | 4.768 |
-| all dark | 6.120 | 8.653 | 10.243 |
-| checkerboard | 4.136 | 7.040 | 7.879 |
-| half dark | 4.120 | 6.614 | 6.939 |
+| clean target | 2.039 | 2.604 | 3.412 |
+| σ=40 target | 2.063 | 2.236 | 2.634 |
+| σ=50 target | 2.076 | 2.450 | 3.561 |
+| blank scene | 1.923 | 2.129 | 2.204 |
+| all dark | 5.953 | 6.672 | 10.102 |
+| checkerboard | 4.252 | 6.646 | 6.900 |
+| half dark | 3.928 | 4.276 | 4.527 |
 
 ## Interpretation and limits
 

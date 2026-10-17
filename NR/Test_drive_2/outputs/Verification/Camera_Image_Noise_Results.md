@@ -1,6 +1,6 @@
 # Synthetic Camera Image-Noise Evaluation
 
-Generated: 2026-10-16 23:45:19 UTC
+Generated: 2026-10-17 11:07:03 UTC
 
 This study injects independent additive Gaussian noise into grayscale
 pixels before the onboard detector. It replaces no hardware measurement:

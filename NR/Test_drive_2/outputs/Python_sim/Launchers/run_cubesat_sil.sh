@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PROJECT_DIR=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim
+PROJECT_DIR=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim
 cd "$PROJECT_DIR" || exit 1
 
 echo "Starting AE CubeSat host SIL from $PROJECT_DIR"

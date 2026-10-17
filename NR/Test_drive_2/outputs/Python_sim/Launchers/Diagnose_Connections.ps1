@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Continue'
 $distro = 'Ubuntu'
 $wslExe = Join-Path $env:SystemRoot 'System32\wsl.exe'
-$linuxDiagnostic = '/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim/Launchers/diagnose_ports.py'
+$linuxDiagnostic = '/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/Launchers/diagnose_ports.py'
 $desktop = [Environment]::GetFolderPath('Desktop')
 $transcript = Join-Path $desktop 'AE_Connection_Diagnostic.txt'
 

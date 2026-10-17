@@ -632,6 +632,26 @@ class YawControllerTests(unittest.TestCase):
         self.assertIsNone(timed_out["yaw_step_error_rad"])
         self.assertEqual(timed_out["body_torque_nm"], 0.0)
 
+    def test_invalid_attitude_takes_precedence_at_yaw_step_deadline(self):
+        from Sim_Environment.main import Environment
+
+        onboard = OnboardSoftware()
+        onboard.mode = "SAFE"
+        env = Environment()
+        onboard.process_observation(env.observation(), now=10.0)
+        onboard.receive_command({"command_id": 1, "command": "SET_YAW_STEP",
+                                 "arguments": {"delta_deg": 20.0}}, now=10.02)
+        stale_observation = env.observation()
+        stale_observation["sensors"]["imu"]["age_s"] = 0.2
+
+        result = onboard.process_observation(stale_observation, now=20.02)
+
+        self.assertEqual(result["mode"], "SAFE")
+        self.assertEqual(result["yaw_step_status"], "ATTITUDE_INVALID")
+        self.assertIsNone(result["yaw_step_target_rad"])
+        self.assertIsNone(result["yaw_step_error_rad"])
+        self.assertEqual(result["body_torque_nm"], 0.0)
+
     def test_telemetry_contains_all_synthetic_imu_axes(self):
         packet = OnboardSoftware().process_observation({
             "protocol_version": 1,
@@ -668,6 +688,7 @@ class YawControllerTests(unittest.TestCase):
         })
         self.assertTrue(packet["mag_valid"])
         self.assertEqual(packet["mag_frame"], "body")
+        self.assertIsNone(packet["mag_full_scale_gauss"])
         self.assertEqual(packet["mag_x_uT"], 20.0)
         self.assertEqual(packet["mag_y_uT"], -5.0)
         self.assertEqual(packet["mag_z_uT"], 45.0)

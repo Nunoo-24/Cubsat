@@ -87,25 +87,36 @@ watchdog zeros requested torque if actuator telemetry is absent for 100 ms.
 The target is a point at XYZ in the simulated world, with positive Z in front
 of the camera. Camera bearing uses the full body rotation and provisional 277
 px focal length. Each observation generates a paired raw QVGA grayscale frame:
-a bright background and a dark circular target projected at the calculated
-pixel location and size. The marker is treated as a camera-facing circle, so
-apparent size uses optical-axis depth with pinhole projection; this is a scene
-assumption, not a model of an oriented physical poster. A five-pose
-roll/pitch/yaw regression matches camera X/Y pixels to an independently
-assembled rigid-body rotation matrix; this checks software frame/sign
-consistency, not lens calibration. Host SIL fetches that
-exact decoded frame and runs the Python centroid detector before control; the Ground Station shows a 5x5-averaged
-thumbnail of the same frame. The environment also sends analytic pixel errors
-as reference metadata. The default Wokwi profile fetches and decodes RLE1 before
-running the portable C detector; the physical camera profile uses its locally
-captured frame. Telemetry uses positive X right and positive Y down, while the
-environment's projection reports positive Y up. Detector area limits,
-visibility and occlusion are modeled. The image has no lens distortion,
-lighting variation, noise or motion blur. Deterministic gyro bias/noise is
-added; the accelerometer returns idealized gravity projected into the body
-frame. A fixed placeholder world magnetic vector is rotated into body
-coordinates for telemetry-interface tests; it is not location-specific and is
-not used by control. Rigid-body axis coupling is omitted.
+a bright background and a dark circular point projected at the calculated
+pixel location and size. Host-SIL frames add an asymmetric three-dot fiducial
+whose directed image angle represents the target's world-up reference. Python
+and portable C detectors estimate its directed angle from image moments; a
+featureless point returns no roll angle. The synthetic marker is a design
+addition for simulation. A physical poster needs an equivalent resolved
+orientation feature for camera roll to be observable. Apparent disk size uses
+pinhole projection from optical-axis depth and is not used as a target-range
+measurement. A five-pose roll/pitch/yaw regression matches camera X/Y pixels to
+an independently assembled rigid-body rotation matrix; this checks frame/sign
+consistency, not lens calibration. Host SIL fetches that exact decoded frame
+and runs the Python detector before control; the Ground Station shows a
+5x5-averaged thumbnail of the same frame. The default Wokwi profile fetches
+and decodes RLE1 before running the portable C detector; the physical camera
+profile uses its locally captured frame. Telemetry uses positive X right and
+positive Y down, while the environment projection reports positive Y up. The
+portable detector's pixel Y is positive down; firmware converts it to the
+pitch-control bearing with `atan(error_y_px / focal_length_px)`, matching the
+host SIL sign after its environment-to-image coordinate conversion. A source
+contract guards this sign, but firmware execution remains unverified. The
+image has no lens distortion, lighting variation, noise or motion blur.
+Deterministic gyro bias/noise is added; the accelerometer returns idealized
+gravity projected into the body frame. A fixed placeholder world magnetic
+vector is rotated into body coordinates for telemetry-interface tests; it is
+not location-specific and is not used by control. Rigid-body axis coupling is
+omitted. Host SIL uses image X/Y and directed marker orientation for all three
+camera axes. Point-only frames use IMU roll fallback. The C/Wokwi firmware path
+has a portable pitch/roll controller and sends bounded virtual torque to the
+plant only for simulator-sourced frames; physical actuator output remains the
+yaw reaction wheel.
 
 The portable Python control reference and the C firmware module implement a
 PD law with a 0.05 N·m output bound, 100 ms observation-age limit, ±20 rad/s
@@ -171,10 +182,12 @@ and no physical performance is claimed.
   LIS3MDL calibration, sensor orientation and a field reference are established.
   The estimate drives the explicit relative yaw-step test; ordinary visual
   acquisition/tracking continues to use camera bearing error.
-- **LIS3MDL:** optional driver shares the MPU-6050 I²C bus and reports the raw
-  XYZ field at ±4 gauss as µT. The host simulation rotates a fixed placeholder
-  field for interface tests. SIL uses it in the yaw estimate; physical raw
-  samples are not fused until calibration and motor-interference testing.
+- **LIS3MDL:** optional driver shares the MPU-6050 I²C bus and reports XYZ
+  field values scaled to µT with Kconfig-selectable ±4/8/12/16 gauss range
+  (±4 default). SPI is not implemented. The host simulation rotates a fixed
+  placeholder field for interface tests and SIL uses that synthetic field in
+  the yaw estimate. Physical raw samples are not fused until calibration and
+  motor-interference testing.
   Breakout voltage, magnetic calibration, placement and motor interference
   must be checked. ST marks the part out of production.
 - **moteus r4.11 + reaction wheel:** moteus specifies CAN-FD frames with 1 Mbit/s

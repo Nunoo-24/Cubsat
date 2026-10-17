@@ -7,6 +7,12 @@ SET_YAW_STEP commands with target/error/progress telemetry. Speed telemetry incl
 
 **Implementation:** [HTTP API](../../Python_sim/docs/Simulator_HTTP_API.md) and [TM/TC ICD](../../Python_sim/docs/TMTC-ICD.md).
 
+Magnetometer telemetry includes XYZ values in µT, validity, age, coordinate
+frame, and configured full-scale range when a physical LIS3MDL profile is
+enabled. The range is null for synthetic observations because the model has no
+hardware ADC range. The Ground Station displays the configured range and
+records it in CSV for later comparison of sensor runs.
+
 **Limit:** HTTP is only the emulator/SIL bridge; physical radio transport, security/authentication, packet integrity, retries, link loss and message rates are TBD. Speed feedback from the plant is simulated and does not validate a physical speed loop. Preview is not an image-radio protocol.
 
 **Verify next:** live local process exchange; later select a radio link and define its framing, rate, CRC, authorization and stale-link procedures.

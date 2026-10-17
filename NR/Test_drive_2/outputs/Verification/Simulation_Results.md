@@ -1,6 +1,6 @@
 # Model-level dynamics, pointing, and sensor evaluation
 
-Generated: 2026-10-16 23:44 UTC
+Generated: 2026-10-17 11:06 UTC
 
 This report measures deterministic software-in-the-loop pointing,
 one-axis yaw-estimator, and passive-axis free-decay scenarios using

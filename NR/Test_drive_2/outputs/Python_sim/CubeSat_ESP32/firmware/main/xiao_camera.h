@@ -8,6 +8,8 @@ typedef struct {
     bool valid;
     float error_x_px;
     float error_y_px;
+    bool roll_orientation_valid;
+    float roll_orientation_rad;
     float focal_length_x_px;
     unsigned width_px;
     int64_t sampled_at_us;

@@ -12,11 +12,14 @@ the LIS3MDL family. One common Adafruit breakout variant has a regulator and
 level shifting, 3–5 V VIN/logic, and I²C addresses 0x1C/0x1E ([official guide](https://learn.adafruit.com/lis3mdl-triple-axis-magnetometer)). This is a likely match, not confirmation of the board in the kit. Confirm markings and revision before wiring. The magnetometer is not required for the relative camera-pointing and rate-damping loop.
 
 **Implementation:** [`CubeSat_ESP32/attitude.py`](../../Python_sim/CubeSat_ESP32/attitude.py) and the portable C implementation provide a gyro-integrated yaw estimate with gravity-based tilt compensation of a magnetic heading. Synthetic XYZ gyro, accelerometer, and fixed-world magnetic
-field data in the environment. Optional ESP-IDF MPU-6050 and LIS3MDL drivers
+field data are produced by the environment. Optional ESP-IDF MPU-6050 and LIS3MDL drivers
 share the XIAO D4/GPIO5 SDA and D5/GPIO6 SCL bus via
 `../../Python_sim/CubeSat_ESP32/firmware/main/sensor_bus.c`. The MPU driver
 averages stationary startup gyro bias; the LIS3MDL driver reports a raw field
-vector at its configured ±4 gauss range. Both stamp their reads.
+vector in microtesla at a Kconfig-selectable ±4/8/12/16 gauss range (±4 gauss
+default). The firmware currently selects the breakout's I²C interface at
+0x1C/0x1E; SPI remains a possible board interface, not an implemented driver.
+Both drivers stamp their reads.
 
 **Software check:** the simulation evaluator initializes the yaw estimate at
 five combined roll/pitch/yaw poses and compares it with known plant yaw. The
@@ -61,3 +64,12 @@ bias/range/noise against primary datasheets, and validate real samples. Calibrat
 hard/soft-iron effects and assess motor interference before enabling magnetic
 correction on hardware. Compare yaw error/drift against rig truth before using
 the estimator in a control path.
+
+
+**Tilt-formula parity:** host SIL and C firmware estimate pitch from
+`atan2(-az, hypot(ax, ay))` and roll from `atan2(ax, ay)`, and accept gravity
+magnitude only within 0.8–1.2 g. A Python source contract checks both firmware
+formulas and thresholds against SIL. The synthetic five-pose regression checks
+the SIL estimates against plant truth; C and physical-sensor execution remain
+unverified. These mappings rely on the documented axis convention and still
+require measurement on the assembled hardware.

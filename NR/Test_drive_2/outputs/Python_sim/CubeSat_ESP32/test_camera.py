@@ -38,6 +38,32 @@ class CameraDetectorTests(unittest.TestCase):
                 "error_x_px": cx - (width - 1) / 2,
                 "error_y_px": cy - (height - 1) / 2}
 
+
+    def test_asymmetric_marker_recovers_directed_image_roll(self):
+        from Sim_Environment.main import Environment
+        import math
+
+        for angle_deg in (-30, -15, 0, 15, 30):
+            with self.subTest(angle_deg=angle_deg):
+                frame = Environment._render_camera_frame(
+                    0, 0, 10.4, marker_angle_rad=math.radians(angle_deg)
+                )
+                result = detect_black_target(frame, 320, 240)
+                self.assertTrue(result["valid"])
+                self.assertIsNotNone(result["roll_orientation_rad"])
+                self.assertLess(abs(math.degrees(
+                    result["roll_orientation_rad"]
+                ) - angle_deg), 2.0)
+                self.assertLess(abs(result["error_x_px"]), 0.5)
+                self.assertLess(abs(result["error_y_px"]), 0.5)
+
+    def test_featureless_point_has_no_roll_orientation(self):
+        from Sim_Environment.main import Environment
+        frame = Environment._render_camera_frame(0, 0, 10.4)
+        result = detect_black_target(frame, 320, 240)
+        self.assertTrue(result["valid"])
+        self.assertIsNone(result["roll_orientation_rad"])
+
     def test_camera_frame_request_requires_exact_sequence_and_qvga_length(self):
         class Response:
             headers = {
@@ -185,9 +211,8 @@ class CameraDetectorTests(unittest.TestCase):
                       "min_dark_pixels": 1,
                       "max_dark_pixels": width * height}
             expected = self.reference_detector(image, width, height, **kwargs)
-            self.assertEqual(
-                detect_black_target(image, width, height, **kwargs), expected
-            )
+            actual = detect_black_target(image, width, height, **kwargs)
+            self.assertEqual({key: actual[key] for key in expected}, expected)
 
     def test_dense_dark_scene_reports_exact_area_without_centroid(self):
         width, height = 320, 240

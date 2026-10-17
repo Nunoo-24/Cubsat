@@ -1,9 +1,10 @@
 # AE CubeSat simulation — second test drive
 
 This checklist verifies the current three-process host software-in-the-loop
-(SIL) build with vertical pointing, gravity-based roll leveling, Y-axis IMU
-rate damping after target loss, moderated stabilization gains, and the cube
-reference frame. It is a live desktop test
+(SIL) build with yaw/pitch/roll camera pointing when the synthetic asymmetric
+marker is visible, IMU roll fallback for a featureless point or lost target,
+Y-axis rate damping after target loss, moderated stabilization gains, and the
+cube reference frame. It is a live desktop test
 for the Python simulation; it does not verify ESP32 firmware or physical
 actuators.
 
@@ -32,6 +33,13 @@ Use one command per terminal, in the same order. Both browser pages should load.
 The terminals should show the service startup lines and stay open. If a page
 fails, preserve the terminal text and run
 `Launchers/Diagnose_Connections.bat`; record its results before restarting.
+The environment and Ground Station launchers now poll Windows localhost for up
+to 45 seconds and open the browser only after the expected page text is
+returned. A timeout means to inspect the corresponding WSL terminal before
+continuing; it does not close that service window.
+If CubeSat SIL starts before the environment accepts requests, its terminal
+shows a waiting message and retries with a short bounded backoff. On recovery,
+it reports the successful connection and returns to its nominal 50 Hz cycle.
 
 ## 2. Baseline and scene controls
 
@@ -95,7 +103,24 @@ Use the environment's external torque control to apply a Z-axis torque of
 Stop if the command cannot be entered or if the displayed axis/response does
 not match. Do not connect physical motor power for this test.
 
-## 7. Save results and stop
+## 7. Camera roll reference and closed loop
+
+At the default centered target position, inspect the camera preview and Ground
+Station roll fields. The simulator frame contains a central dark point and two
+unequal satellites that encode a directed orientation. `Camera marker angle`
+should be near 0° at level; `roll estimate` should agree with simulator-truth
+roll within a few degrees, and `source` should show `CAMERA`. If the target is
+point-only, the source should fall back to `IMU`.
+
+For a camera-driven check, set a Z-axis torque pulse of `0.03 N·m` for `0.5 s`.
+Confirm the marker angle changes opposite the body roll, the camera roll
+estimate follows the truth, and the requested virtual Z/roll torque opposes the
+roll error. Record the largest angle and settling time. Keep the target inside
+the camera view; if it is lost, roll control intentionally falls back to the
+IMU. This tests the synthetic target and host SIL, not a physical poster or
+ESP32 build.
+
+## 8. Save results and stop
 
 The Ground Station appends data to
 `Ground_Station/logs/telemetry.csv`. If an older file used a different schema,
@@ -118,12 +143,12 @@ process with `Ctrl+C` and report:
 The host SIL uses a reaction-wheel model for yaw and bounded ideal virtual
 torques for pitch and roll. Yaw tracking uses the Y-axis gyro and target-loss
 mode uses IMU-only rate damping (1.5× tracking rate gain). Current pitch torque
-limit is ±0.02 N·m; roll
-limit is ±0.035 N·m. Roll uses gravity-derived leveling because a single point target
-cannot reveal rotation about the camera boresight. These axis controls and the
-roll recovery timing are simulation tuning, not implemented physical pitch/roll
-actuation. The Python offline suite passed 191 tests and syntax compilation;
-live Windows/WSL networking and browser behavior still need this user-side
+limit is ±0.02 N·m; roll limit is ±0.035 N·m. Camera roll uses the directed
+angle of the synthetic asymmetric marker; featureless targets and target loss
+fall back to IMU leveling. This visual marker is not part of the supplied
+physical target, and ESP32 physical actuation remains yaw-only. The latest
+current test count is recorded in the status report after the full verification
+run. Live Windows/WSL networking and browser behavior still need this user-side
 test. Firmware build, Wokwi, and hardware remain separate verification steps.
 
 See [`FIRST_TEST_DRIVE.md`](FIRST_TEST_DRIVE.md) for launcher troubleshooting

@@ -108,7 +108,7 @@ Wokwi's private gateway using `host.wokwi.internal`; the host SIL uses
 | `GET /api/cycle?after=<id>` | Plant → Onboard | Latest IMU observation, camera-frame sequence, analytic camera reference metadata, and one queued supervisory command |
 | `GET /api/camera-frame.rle?sequence=<n>` | Plant → Onboard | Sequence-paired QVGA RLE1 grayscale frame, reconstructed before host SIL/C detector processing; max 8192 encoded bytes |
 | `GET /api/camera-frame.raw?sequence=<n>` | Plant → Operator/test tools | Uncompressed 320x240 grayscale frame for inspection and verification |
-| `POST /api/actuator` | Onboard → Plant | Desired yaw body torque, host-SIL-only virtual pitch/roll torques, mode/fault, detected camera X/Y pixel errors and freshness, optional camera frame source/sequence, XYZ gyro/accelerometer, optional magnetometer and estimated yaw telemetry, and optional command acknowledgement |
+| `POST /api/actuator` | Onboard → Plant | Desired yaw body torque; bounded virtual pitch/roll torques from host SIL or simulator-framed ESP32; mode/fault; camera X/Y errors and optional directed marker angle; sensor freshness; optional frame source/sequence, IMU/magnetometer and configured magnetometer range, yaw estimate and command acknowledgement |
 | `GET /api/telemetry` | Ground Station → Plant | Most recent onboard telemetry |
 | `POST /api/command` | Ground Station → Plant | Queue `PING`, `SET_MODE`, `SET_WHEEL_SPEED`, or `SET_YAW_STEP` |
 | `POST /api/control` | Scene UI → Plant | Target XYZ/scale, disturbance torque, and camera occlusion |
@@ -174,16 +174,18 @@ motor torque/lag, and saturation; `/api/telemetry` adds these as
 motor-controller delay/current/thermal limits, CAN-FD, and physical safe-stop
 behavior are not represented by that packet.
 
-Host Python SIL may include `virtual_axis_torque_nm` as an object with optional
-`pitch` (±0.02 N·m) and `roll` (±0.035 N·m) values. Both must be finite. Roll
-gains and authority are halfway between the previous and stronger tuning.
-Host SIL keeps Y-axis gyro rate damping active after camera target loss, with
-a 1.5× rate gain relative to visual tracking. The bridge accepts this field
-only from source `cubesat_sil`, rejects unknown axis names,
-and applies it as ideal body torque to the simulation plant. It is not a
-physical actuator command and is not part of the ESP-IDF firmware interface.
-Pitch uses camera vertical error; roll is gravity-levelled because one point
-target cannot observe rotation about the camera boresight.
+Host SIL or simulator-framed ESP32 telemetry may include
+`virtual_axis_torque_nm` with `pitch` (±0.02 N·m) and `roll` (±0.035 N·m).
+Both values must be finite. The ESP32 source is accepted only when its camera
+frame source is `simulated`; physical-camera firmware output cannot drive the
+ideal axes. These torques are virtual plant inputs, not physical actuator
+commands. Raster camera Y error is positive down; the C adapter converts it to
+pitch bearing with `atan(error_y_px / focal_length_px)`, matching the host SIL
+feedback sign. Roll uses the directed image orientation of the asymmetric
+simulator marker, or gravity-derived leveling
+when only a point is visible. Host SIL keeps Y-axis gyro rate damping active
+after target loss with a 1.5× rate gain relative to visual tracking. C source and ESP-IDF/Wokwi execution still require compiler and emulator
+verification.
 
 In visual modes, both camera and IMU samples must have valid ages within the
 100 ms control limit. A missing, invalid, stale, or future-dated sample faults

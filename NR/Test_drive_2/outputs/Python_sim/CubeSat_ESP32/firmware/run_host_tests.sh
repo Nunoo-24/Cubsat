@@ -29,5 +29,6 @@ build_and_run() {
 
 cd "$PYTHON_SIM_DIR"
 build_and_run yaw-controller-test yaw_controller.c test_yaw_controller.c
+build_and_run pitch-roll-controller-test pitch_roll_controller.c test_pitch_roll_controller.c
 build_and_run attitude-estimator-test attitude_estimator.c test_attitude_estimator.c
 build_and_run black-target-test black_target.c test_black_target.c

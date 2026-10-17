@@ -24,7 +24,7 @@
 </head>
 <body>
   <h1>CubeSat attitude-control simulation</h1>
-  <p>Three-axis gimbal scene: yaw reaction wheel plus host-SIL virtual pitch/roll control. The center axes show body X=pitch, Y=yaw, Z=roll/camera; all displayed values are simulated.</p>
+  <p>Three-axis gimbal scene: yaw reaction wheel plus host-SIL/ESP32 simulator virtual pitch/roll control. The center axes show body X=pitch, Y=yaw, Z=roll/camera; all displayed values are simulated.</p>
   <main>
     <section>
       <canvas id="scene" width="720" height="430" aria-label="Interactive 3D scene. Drag to orbit, use the mouse wheel to zoom, and double-click to reset."></canvas>
@@ -40,6 +40,7 @@
       </div>
       <label for="scale">Target diameter / scale (m)</label><input id="scale" type="number" step="0.01" min="0.001" max="2" value="0.1">
       <button onclick="setTarget()">Apply target</button>
+      <label><input id="rollMarker" type="checkbox" onchange="setRollMarker(this.checked)"> Use asymmetric camera-roll marker (simulation test)</label>
       <h2>External torque pulse</h2>
       <p>Torque in N·m. Model body axes: X=pitch, Y=yaw, Z=roll. XYZ disturbances affect the gimbal; only yaw has an active wheel controller.</p>
       <div class="grid">
@@ -74,6 +75,7 @@ function numberInput(id) { return Number(document.getElementById(id).value); }
 function setTarget() {
   post({target_xyz_m:{x:numberInput('tx'),y:numberInput('ty'),z:numberInput('tz')},target_scale:numberInput('scale')});
 }
+function setRollMarker(enabled) { post({camera_roll_marker_enabled:enabled}); }
 function applyTorque() {
   post({external_torque_nm:{x:numberInput('txx'),y:numberInput('tyy'),z:numberInput('tzz')},duration_s:numberInput('duration')});
 }
@@ -114,7 +116,8 @@ function draw() {
   ];
   for(const axis of axes){const end=project(rotateBody(axis.p,angles));if(bodyOrigin[2]<=0.05||end[2]<=0.05)continue;ctx.strokeStyle=axis.color;ctx.fillStyle=axis.color;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(bodyOrigin[0],bodyOrigin[1]);ctx.lineTo(end[0],end[1]);ctx.stroke();ctx.beginPath();ctx.arc(end[0],end[1],3.5,0,Math.PI*2);ctx.fill();ctx.font='bold 12px system-ui';ctx.fillText(axis.label,end[0]+5,end[1]-4);}
   const t=state.target_xyz_m, target=project([t.x,t.y,t.z]);
-  if(target[2]>0.05){const rad=Math.max(5,Math.min(32,state.target_scale_m*220/target[2]));ctx.fillStyle='#111';ctx.beginPath();ctx.arc(target[0],target[1],rad,0,Math.PI*2);ctx.fill();ctx.fillStyle='#223';ctx.font='16px system-ui';ctx.fillText('Target',target[0]+rad+5,target[1]);}
+  if(target[2]>0.05){const rad=Math.max(5,Math.min(32,state.target_scale_m*220/target[2]));ctx.fillStyle='#111';ctx.beginPath();ctx.arc(target[0],target[1],rad,0,Math.PI*2);ctx.fill();if(state.camera_roll_marker_enabled){ctx.fillStyle='#f2c14e';ctx.beginPath();ctx.arc(target[0]+rad*1.5,target[1],Math.max(2,rad*.22),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(target[0]-rad*1.5,target[1],Math.max(3,rad*.34),0,Math.PI*2);ctx.fill();}ctx.fillStyle='#223';ctx.font='16px system-ui';ctx.fillText(state.camera_roll_marker_enabled?'Oriented target':'Point target',target[0]+rad+5,target[1]);}
+  document.getElementById('rollMarker').checked=state.camera_roll_marker_enabled===true;
   document.getElementById('readout').textContent=`time ${state.time_s.toFixed(2)} s | roll ${(state.roll_rad*180/Math.PI).toFixed(1)}° | pitch ${(state.pitch_rad*180/Math.PI).toFixed(1)}° | yaw ${(state.yaw_rad*180/Math.PI).toFixed(1)}° | target camera error X/Y ${(state.camera_truth_error_x_rad*180/Math.PI).toFixed(2)}° / ${(state.camera_truth_error_y_rad*180/Math.PI).toFixed(2)}° | wheel ${(state.wheel_speed_rad_s*60/(2*Math.PI)).toFixed(0)} rpm${state.wheel_saturated?' (speed limit)':''} | body torque yaw/pitch/roll ${state.actual_body_torque_nm.toFixed(4)} / ${state.simulated_pitch_body_torque_nm.toFixed(4)} / ${state.simulated_roll_body_torque_nm.toFixed(4)} N·m | disturbance ${state.torque_active?'ACTIVE':'off'}`;
 }
 async function refresh(){try{state=await(await fetch('/api/state')).json();draw();}catch(e){document.getElementById('readout').textContent='Simulation link unavailable';}}

@@ -8,7 +8,7 @@ printf '%s\n' '== Python unit tests =='
 python3 -m unittest discover -s . -p 'test_*.py'
 
 printf '%s\n' '== Python syntax compilation =='
-python3 -m compileall -q Sim_Environment Ground_Station CubeSat_ESP32 Verification
+python3 -m compileall -q http_startup.py Sim_Environment Ground_Station CubeSat_ESP32 Verification
 
 printf '%s\n' '== Regenerating simulation and camera reports =='
 python3 -m Verification.evaluate_scenarios > ../Verification/Simulation_Results.md
@@ -16,6 +16,7 @@ python3 -m Verification.evaluate_camera_transport > ../Verification/Camera_Trans
 python3 -m Verification.evaluate_camera_geometry > ../Verification/Camera_Geometry_Results.md
 python3 -m Verification.evaluate_camera_image_noise > ../Verification/Camera_Image_Noise_Results.md
 python3 -m Verification.evaluate_camera_detector_timing > ../Verification/Camera_Detector_Timing_Results.md
+python3 -m Verification.evaluate_axis_control > ../Verification/Axis_Control_Results.md
 
 C_HOST_COMPILER=${CC:-cc}
 if command -v "$C_HOST_COMPILER" >/dev/null 2>&1; then

@@ -1,6 +1,7 @@
 #include "yaw_controller.h"
 #include "attitude_estimator.h"
 #include "black_target.h"
+#include "pitch_roll_controller.h"
 #include "xiao_camera.h"
 #include "mpu6050.h"
 #include "lis3mdl.h"
@@ -430,6 +431,7 @@ static void process_commands(cJSON *commands)
 }
 
 static cube_yaw_controller_config_t controller_config;
+static cube_pitch_roll_controller_config_t pitch_roll_config;
 #if CONFIG_CUBESAT_MPU6050_ENABLED
 static bool imu_online;
 #endif
@@ -540,6 +542,8 @@ static bool run_control_cycle(void)
     float target_error_px;
     float target_error_y_px;
     float focal_length_px;
+    bool camera_roll_orientation_valid = false;
+    float camera_roll_orientation_rad = 0.0f;
     const char *camera_frame_source = "unavailable";
     uint64_t camera_frame_sequence = 0;
     bool camera_frame_sequence_valid = false;
@@ -554,6 +558,9 @@ static bool run_control_cycle(void)
     target_error_px = camera_observation.error_x_px;
     target_error_y_px = camera_observation.error_y_px;
     focal_length_px = camera_observation.focal_length_x_px;
+    camera_roll_orientation_valid = camera_age_valid && camera_observation.valid &&
+        camera_observation.roll_orientation_valid;
+    camera_roll_orientation_rad = camera_observation.roll_orientation_rad;
     camera_frame_source = "physical";
 #else
     cube_target_detection_t detection = {0};
@@ -576,8 +583,9 @@ static bool run_control_cycle(void)
         .max_dark_pixels = 200,
     };
     const bool detector_ok = frame_received && cube_detect_black_target(
-        simulated_camera_frame, SIM_CAMERA_WIDTH_PX, SIM_CAMERA_HEIGHT_PX,
-        SIM_CAMERA_WIDTH_PX, &detector_config, &detection);
+        simulated_camera_frame, sizeof(simulated_camera_frame),
+        SIM_CAMERA_WIDTH_PX, SIM_CAMERA_HEIGHT_PX, SIM_CAMERA_WIDTH_PX,
+        &detector_config, &detection);
     camera_age = detector_ok
         ? (float)(esp_timer_get_time() - cycle_request_started_us) / 1000000.0f
         : NAN;
@@ -585,6 +593,8 @@ static bool run_control_cycle(void)
     target_valid = camera_age_valid && detection.valid;
     target_error_px = target_valid ? detection.error_x_px : 0.0f;
     target_error_y_px = target_valid ? detection.error_y_px : 0.0f;
+    camera_roll_orientation_valid = target_valid && detection.roll_orientation_valid;
+    camera_roll_orientation_rad = detection.roll_orientation_rad;
     focal_length_px = cJSON_IsNumber(focal_json) &&
         isfinite(focal_json->valuedouble) && focal_json->valuedouble > 0.0
         ? (float)focal_json->valuedouble : 0.0f;
@@ -741,6 +751,42 @@ static bool run_control_cycle(void)
         ESP_LOGE(TAG, "Control inhibited by sensor/observation fault %d", output.fault);
     }
 
+    const float accel_norm = sqrtf(accel_x * accel_x + accel_y * accel_y +
+                                   accel_z * accel_z);
+    const bool tilt_valid = imu_valid && isfinite(accel_norm) &&
+        accel_norm >= 0.8f * 9.80665f && accel_norm <= 1.2f * 9.80665f;
+    const float pitch_estimate_rad = tilt_valid
+        ? atan2f(-accel_z, hypotf(accel_x, accel_y)) : NAN;
+    const float imu_roll_estimate_rad = tilt_valid
+        ? atan2f(accel_x, accel_y) : NAN;
+    const bool camera_roll_estimate_valid = target_valid &&
+        camera_roll_orientation_valid;
+    const float camera_roll_estimate_rad = camera_roll_estimate_valid
+        ? wrap_pi(-camera_roll_orientation_rad) : NAN;
+    const float roll_control_estimate_rad = camera_roll_estimate_valid
+        ? camera_roll_estimate_rad : imu_roll_estimate_rad;
+    const bool tilt_control_allowed =
+        strcmp(camera_frame_source, "simulated") == 0 &&
+        imu_valid && camera_age_valid && observation_age <= 0.1f &&
+        output.mode != CUBE_CONTROL_FAULT &&
+        strcmp(operating_mode, "SAFE") != 0 &&
+        strcmp(operating_mode, "STANDBY") != 0 &&
+        strcmp(operating_mode, "WHEEL_SPEED_TEST") != 0 &&
+        strcmp(operating_mode, "WHEEL_SPEED_STOPPING") != 0;
+    cube_pitch_roll_control_output_t tilt_output = {0};
+    if (tilt_control_allowed && tilt_valid) {
+        const float camera_error_y_rad = target_valid && focal_length_px > 0.0f
+            ? atanf(target_error_y_px / focal_length_px) : 0.0f;
+        tilt_output = cube_pitch_roll_controller_update(
+            &pitch_roll_config, camera_error_y_rad, target_valid,
+            pitch_estimate_rad, roll_control_estimate_rad,
+            gyro_x, gyro_z, observation_age);
+    }
+    if (!tilt_output.valid) {
+        tilt_output.pitch_body_torque_nm = 0.0f;
+        tilt_output.roll_body_torque_nm = 0.0f;
+    }
+
 #if CONFIG_CUBESAT_MOTEUS_ENABLED
     cube_moteus_status_t moteus_status = {0};
     bool moteus_reply_received = false;
@@ -840,6 +886,12 @@ static bool run_control_cycle(void)
     cJSON_AddNumberToObject(packet, "camera_error_y_px",
                             target_valid ? target_error_y_px : 0.0f);
     cJSON_AddNumberToObject(packet, "camera_focal_length_x_px", focal_length_px);
+    if (camera_roll_orientation_valid) {
+        cJSON_AddNumberToObject(packet, "camera_roll_orientation_rad",
+                                camera_roll_orientation_rad);
+    } else {
+        cJSON_AddNullToObject(packet, "camera_roll_orientation_rad");
+    }
     if (camera_age_valid) {
         cJSON_AddNumberToObject(packet, "camera_age_s", camera_age);
     } else {
@@ -891,6 +943,12 @@ static bool run_control_cycle(void)
     cJSON_AddNumberToObject(packet, "accel_y_m_s2", isfinite(accel_y) ? accel_y : 0.0f);
     cJSON_AddNumberToObject(packet, "accel_z_m_s2", isfinite(accel_z) ? accel_z : 0.0f);
     cJSON_AddBoolToObject(packet, "mag_valid", mag_valid);
+#if CONFIG_CUBESAT_LIS3MDL_ENABLED
+    cJSON_AddNumberToObject(packet, "mag_full_scale_gauss",
+                            cube_lis3mdl_full_scale_gauss());
+#else
+    cJSON_AddNullToObject(packet, "mag_full_scale_gauss");
+#endif
     if (mag_valid) {
         cJSON_AddStringToObject(packet, "mag_frame", mag_frame);
         cJSON_AddNumberToObject(packet, "mag_x_uT", mag_x);
@@ -905,6 +963,31 @@ static bool run_control_cycle(void)
         cJSON_AddNullToObject(packet, "mag_age_s");
     }
     cJSON_AddNumberToObject(packet, "body_torque_nm", output.body_torque_nm);
+    cJSON_AddNumberToObject(packet, "pitch_estimate_rad",
+                            isfinite(pitch_estimate_rad) ? pitch_estimate_rad : 0.0f);
+    cJSON_AddNumberToObject(packet, "roll_estimate_rad",
+                            isfinite(imu_roll_estimate_rad) ? imu_roll_estimate_rad : 0.0f);
+    if (camera_roll_estimate_valid) {
+        cJSON_AddNumberToObject(packet, "camera_roll_estimate_rad",
+                                camera_roll_estimate_rad);
+        cJSON_AddStringToObject(packet, "roll_reference_source", "CAMERA");
+    } else {
+        cJSON_AddNullToObject(packet, "camera_roll_estimate_rad");
+        cJSON_AddStringToObject(packet, "roll_reference_source",
+                                tilt_valid ? "IMU" : "INVALID");
+    }
+    cJSON_AddNumberToObject(packet, "pitch_body_torque_nm",
+                            tilt_output.pitch_body_torque_nm);
+    cJSON_AddNumberToObject(packet, "roll_body_torque_nm",
+                            tilt_output.roll_body_torque_nm);
+    if (strcmp(camera_frame_source, "simulated") == 0) {
+        cJSON *axis_torque = cJSON_CreateObject();
+        cJSON_AddNumberToObject(axis_torque, "pitch",
+                                tilt_output.pitch_body_torque_nm);
+        cJSON_AddNumberToObject(axis_torque, "roll",
+                                tilt_output.roll_body_torque_nm);
+        cJSON_AddItemToObject(packet, "virtual_axis_torque_nm", axis_torque);
+    }
     if (speed_command_active) {
         cJSON_AddNumberToObject(packet, "motor_speed_target_rev_s",
                                 wheel_speed_target_rev_s);
@@ -1049,6 +1132,7 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(nvs_status);
     controller_config = cube_yaw_controller_default_config();
+    pitch_roll_config = cube_pitch_roll_controller_default_config();
 #if CONFIG_CUBESAT_CAMERA_ENABLED
     camera_online = cube_xiao_camera_init();
     if (!camera_online) {

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set "WSL_DISTRO=Ubuntu"
-set "LINUX_LAUNCHER=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim/Launchers/run_cubesat_sil.sh"
+set "LINUX_LAUNCHER=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/Launchers/run_cubesat_sil.sh"
 
 "%SystemRoot%\System32\wsl.exe" --distribution "%WSL_DISTRO%" --exec python3 --version
 if errorlevel 1 (

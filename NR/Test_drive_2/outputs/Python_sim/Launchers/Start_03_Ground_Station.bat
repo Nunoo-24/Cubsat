@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set "WSL_DISTRO=Ubuntu"
-set "LINUX_LAUNCHER=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/NR/Test_drive_2/outputs/Python_sim/Launchers/run_ground_station.sh"
+set "LINUX_LAUNCHER=/home/nunot/Mestrado_Codex/AE/outputs/Python_sim/Launchers/run_ground_station.sh"
 
 "%SystemRoot%\System32\wsl.exe" --distribution "%WSL_DISTRO%" --exec python3 --version
 if errorlevel 1 (
@@ -11,5 +11,10 @@ if errorlevel 1 (
     exit /b 1
 )
 start "AE Ground Station" cmd.exe /k %SystemRoot%\System32\wsl.exe --distribution %WSL_DISTRO% --exec bash %LINUX_LAUNCHER%
-timeout /t 3 /nobreak >nul
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Wait_For_Service.ps1" -Port 8001 -Url "http://127.0.0.1:8001/" -ExpectedText "CubeSat Ground Station"
+if errorlevel 1 (
+    echo Ground Station did not become ready. Its terminal remains open for diagnosis.
+    pause
+    exit /b 1
+)
 start "" "http://127.0.0.1:8001"

@@ -1,14 +1,30 @@
 # Onboard control
 
-**Role:** produce bounded body torque onboard from fresh camera-bearing error and yaw rate during visual pointing, or from a relative yaw-estimate setpoint and yaw rate during the explicit step test. In host SIL, image Y also drives bounded virtual pitch torque and gravity-derived tilt drives virtual roll-leveling torque. Telemetry loss must not move control to the PC.
+**Role:** produce bounded body torque onboard from fresh camera-bearing error and yaw rate during visual pointing, or from a relative yaw-estimate setpoint and yaw rate during the explicit step test. In host SIL, image Y drives bounded virtual pitch torque and a directed image orientation from the asymmetric marker drives virtual roll torque; if the marker cue is absent, gravity-derived tilt provides roll leveling. Telemetry loss must not move control to the PC.
 
-**Inputs:** target validity and camera X/Y error, XYZ gyro, gravity-derived tilt, yaw-step attitude error, sample age and supervisory mode. **Output:** bounded yaw torque plus host-SIL-only virtual pitch/roll torques, mode and fault status.
+**Inputs:** target validity and camera X/Y error, XYZ gyro, gravity-derived tilt, yaw-step attitude error, sample age and supervisory mode. **Output:** bounded yaw torque plus host-SIL or simulator-framed ESP32 virtual pitch/roll torques, mode and fault status.
 
 If a fresh camera frame has no valid target, the controller uses fresh IMU yaw rate for damping only. Any missing, invalid, stale, or future camera/IMU sample fails closed and inhibits torque. The Python SIL exercises this behavior; the C firmware rule is source-checked only and still needs ESP-IDF and target verification.
 
 **Implementation:** [Python reference](../../Python_sim/CubeSat_ESP32/control.py) and firmware C controller `../../Python_sim/CubeSat_ESP32/firmware/main/yaw_controller.c`.
 
-**Limit:** current PD gains/torque bounds are provisional. Visual yaw uses X camera error; host-SIL pitch uses Y error; roll uses gravity leveling because a point target cannot observe boresight rotation. Pitch/roll torques are accepted by the simulator only from host SIL and are not hardware outputs. Yaw-step mode uses the one-axis estimated attitude and rate. The loop does not use measured wheel speed or hardware status for anti-windup/protection. C firmware remains yaw-only and has no compiler verification here.
+**Limit:** current PD gains/torque bounds are provisional. Visual yaw uses X camera error; host-SIL pitch uses Y error; roll uses camera marker orientation when available and falls back to gravity leveling for a point-only target. Raster/C camera Y offset is positive down and converts to pitch bearing with `atan(error_y_px / focal_length_px)`, matching the host SIL feedback sign; a source contract checks this convention. Pitch/roll torques are accepted from host SIL or simulator-framed ESP32 telemetry; they remain virtual plant inputs, not physical actuator outputs. Yaw-step mode uses the one-axis estimated attitude and rate. The loop does not use measured wheel speed or hardware status for anti-windup/protection. C yaw plus virtual pitch/roll source is implemented but has no compiler verification here; physical motor actuation remains yaw-only. The portable C detector and controller implement the same marker-angle and virtual-axis path for simulated frames; no physical pitch/roll actuators are selected. See [axis-control verification](../../Verification/Axis_Control_Results.md) for target-loss recovery and camera-pointing results by axis.
+
+**Combined-axis evidence:** an integrated host-SIL scenario starts at 10° yaw,
+−8° pitch, and 12° roll with a target off center and the asymmetric marker
+enabled. Simultaneous image centering and camera-referenced roll correction
+remain within ≤2° image error, ±1° roll, and ±0.5°/s roll rate for 0.5 s,
+starting at 1.99 simulated seconds. At 10 s, image error is 0.147°, roll is
+−0.203°, and roll rate is −0.016°/s. This checks the coupled image/control
+path in the host model; the plant omits cross-axis inertia and this is not C,
+Wokwi, or hardware evidence.
+
+**Firmware-to-plant routing:** the ESP32 telemetry source contract checks that
+simulator-framed firmware output uses the bridge's `source`, frame-source, and
+nested pitch/roll torque fields. A bridge regression confirms that accepted
+simulated ESP32 torque values change the corresponding plant rates and are
+reported separately. The bridge behavior is Python-tested; the C emitter is
+source-checked only until a compiler and ESP-IDF are available.
 
 For quicker simulated Z-disturbance recovery, host-SIL roll gains are now
 `Kp=0.24 N·m/rad`, `Kd=0.19 N·m·s/rad`, with virtual roll torque bounded to
